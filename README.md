@@ -47,13 +47,13 @@ if you want to draw more, you can draw centor hole, around hole and output disk 
 
 <img src="./image/optionary param image.png" width="300">
 
-#### Draw cycroidal gear centor hole (Cycroidal gear centor hole)
+#### Draw centor hole (Cycroidal gear centor hole)
 if you check this, drawn centor hole and you can set diameter.  
 
 #### Diameter (Cycroidal gear centor hole)
 centor hole diameter
 
-#### Draw cycloidal gear around hole (Cycroidal gear to output disk)
+#### Draw around hole (Cycroidal gear to output disk)
 if you check this, drawn around hole and you can set parameter.  
 
 #### Draw output disk pin (Cycroidal gear to output disk)

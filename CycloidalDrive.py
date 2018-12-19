@@ -405,12 +405,12 @@ def settingComandInputsItem(inputs):
           #centor hole group
     centorHoleGroup = optionTabChildInputs.addGroupCommandInput(ID_OPT_CH_GROUP, "Cycloidal gear centor hole")
     centorHoleInputs = centorHoleGroup.children
-    centorHoleInputs.addBoolValueInput(ID_OPT_CGH_DR, "Draw cycloidal gear centor hole", True, "", False)
+    centorHoleInputs.addBoolValueInput(ID_OPT_CGH_DR, "Draw centor hole", True, "", False)
     centorHoleInputs.addValueInput(ID_OPT_CGH_D, "Diameter", "mm", adsk.core.ValueInput.createByReal(1.6))
           #trochoid hole to output disk pin group
     trochoidToOutputGroup = optionTabChildInputs.addGroupCommandInput(ID_OPT_TGTOD_GROUP, "Cycloidal gear to output disk")
     trochoidToOutputInputs = trochoidToOutputGroup.children
-    trochoidToOutputInputs.addBoolValueInput(ID_OPT_DR_CAH, "Draw cycloidal gear around hole", True, "", False)
+    trochoidToOutputInputs.addBoolValueInput(ID_OPT_DR_CAH, "Draw around hole", True, "", False)
     trochoidToOutputInputs.addBoolValueInput(ID_OPT_DR_DP, "Draw output disk pin", True, "", False)
             #trochoid hole to output disk pin item
     holeOrPinSelectInputs = trochoidToOutputInputs.addDropDownCommandInput(ID_OPT_CHOTGOD, "Set about", adsk.core.DropDownStyles.LabeledIconDropDownStyle)
