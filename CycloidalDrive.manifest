@@ -4,7 +4,7 @@
 	"author": "woodenCariper",
 	"version": "1.0.0",
 	"description":{
-		"":	"This script is create sketchs for cycloidal drive"
+		"":	"This script create sketchs for cycloidal drive"
 	},
 	"supportedOS": "windows|mac",
 	"editEnabled": true

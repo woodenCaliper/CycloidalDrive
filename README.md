@@ -4,10 +4,16 @@ this can create part of cycloidal drive
     * Trochoidal parallel curve
     * Centor hole
     * Cround hole
-* Ring pin (green)
-* Output disk pin (yellow)
+* Ring pin (yellow)
+* Output disk pin (green)
 
 <img src="./image/cyclo_Discription_Image_opt.png" width="300">
+
+# How to use
+you clone this in  
+
+Windows – `%appdata%\Autodesk\Autodesk Fusion 360\API\Scripts\`  
+Mac – `$HOME/Library/Application Support/Autodesk/Autodesk Fusion 360/API/Scripts\`
 
 ## Necessary parameter
 you need least 5 parameter
@@ -20,7 +26,7 @@ This script support only max raducation ratio.
 So, ring pin num = cycloidal gear thooth num + 1
 
 ####  Eccentric amount
-Eccentric amount is difference between centor of ring pin pitch ring and centor of cycloidal gear.  
+difference between centor of ring pin pitch ring and centor of cycloidal gear.  
 
 ####  Ring pin diameter
 diameter
@@ -61,7 +67,7 @@ you can choise set about around hole's parameter or output disk pin's parameter.
 around hole or disk pin num.    
 
 #### Hole(pin) diameter
-around hole or disk pin diameter
+around hole or disk pin diameter.  
 around hole diameter - output disk pin diameter = 2 *  Eccentric amount
 
 #### Centor to hole(pin) distance
