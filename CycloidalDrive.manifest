@@ -1,0 +1,11 @@
+{
+	"autodeskProduct": "Fusion360",
+	"type": "script",
+	"author": "woodenCariper",
+	"version": "1.0.0",
+	"description":{
+		"":	"This script is create sketchs for cycloidal drive"
+	},
+	"supportedOS": "windows|mac",
+	"editEnabled": true
+}
