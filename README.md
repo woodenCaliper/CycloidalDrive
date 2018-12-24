@@ -1,22 +1,22 @@
 # Fusion360 script for creating Cycloidal Drive sketch
-this can create part of cycloidal drive
+This can create part of cycloidal drive
 * Cycloida gear (gray)
     * Trochoidal parallel curve
     * Centor hole
-    * Cround hole
+    * Around hole
 * Ring pin (yellow)
 * Output disk pin (green)
 
 <img src="./image/cyclo_Discription_Image_opt.png" width="300">
 
 # How to use
-you clone this in  
+You clone this in  
 
 Windows – `%appdata%\Autodesk\Autodesk Fusion 360\API\Scripts\`  
 Mac – `$HOME/Library/Application Support/Autodesk/Autodesk Fusion 360/API/Scripts\`
 
 ## Necessary parameter
-you need least 5 parameter
+You need least 5 parameter
 
 <img src="./image/necessay param image.png" width="300">
 
@@ -26,7 +26,7 @@ This script support only max raducation ratio.
 So, ring pin num = cycloidal gear thooth num + 1
 
 ####  Eccentric amount
-difference between centor of ring pin pitch ring and centor of cycloidal gear.  
+Difference between centor of ring pin pitch ring and centor of cycloidal gear.  
 
 ####  Ring pin diameter
 diameter
@@ -34,55 +34,55 @@ diameter
 ####  Ring pin pitch diameter
 Pitch ring is through to the all centor of ring pin.  
 
-####  Cycroidal curve plot num par thooth
+####  Cycloidal curve plot num par thooth
 This script reder curve in sprine command.  
 So, you need to decide point num.  
-if few point num, cycroidal curve be inexactitude.  
-if a lot of point num, run slow.  
+If few point num, cycloidal curve be inexactitude.  
+If a lot of point num, run slow.  
 
 
 
 ## Optionary parameter
-if you want to draw more, you can draw centor hole, around hole and output disk pin.  
+If you want to draw more, you can draw centor hole, around hole and output disk pin.  
 
 <img src="./image/optionary param image.png" width="300">
 
-#### Draw centor hole (Cycroidal gear centor hole)
-if you check this, drawn centor hole and you can set diameter.  
+#### Draw centor hole (Cycloidal gear centor hole)
+If you check this, drawn centor hole and you can set diameter.  
 
-#### Diameter (Cycroidal gear centor hole)
-centor hole diameter
+#### Diameter (Cycloidal gear centor hole)
+Centor hole diameter
 
-#### Draw around hole (Cycroidal gear to output disk)
-if you check this, drawn around hole and you can set parameter.  
+#### Draw around hole (Cycloidal gear to output disk)
+If you check this, drawn around hole and you can set parameter.  
 
-#### Draw output disk pin (Cycroidal gear to output disk)
-if you check this, drawn output disk pin and you can set parameter.  
+#### Draw output disk pin (Cycloidal gear to output disk)
+If you check this, drawn output disk pin and you can set parameter.  
 
-#### Set about (Cycroidal gear to output disk)
-around hole parameter linked with output disk parameter.  
-you can choise set about around hole's parameter or output disk pin's parameter.
+#### Set about (Cycloidal gear to output disk)
+Around hole parameter linked with output disk parameter.  
+You can choise set about around hole's parameter or output disk pin's parameter.
 
 #### Hole(pin) num
-around hole or disk pin num.    
+Around hole or disk pin num.    
 
 #### Hole(pin) diameter
-around hole or disk pin diameter.  
+Around hole or disk pin diameter.  
 around hole diameter - output disk pin diameter = 2 *  Eccentric amount
 
 #### Centor to hole(pin) distance
-centor of cycloidal gear to around hole distance.  
+Centor of cycloidal gear to around hole distance.  
 Or centor of output disk to output disk pin distance.  
 
 ## detail setting
-you choise separate or combine.  
+You can set unrelated parameter to cycloidal drive.
 
 <img src="./image/detail setting image.png" width="300">
 
 #### sketch (Separate)
-if you check this, create 3 sketch(cycloidal gear, ring pins, output disk).  
-else, create 1 sketch.  
+If you check this, create 3 sketch(cycloidal gear, ring pins, output disk).  
+Else, create 1 sketch.  
 
 #### component (Separate)
-if you check this, create 3 component and create sketch in each component.  
-else, create sketch in active component.  
+If you check this, create 3 component and create sketch in each component.  
+Else, create sketch in active component.  
