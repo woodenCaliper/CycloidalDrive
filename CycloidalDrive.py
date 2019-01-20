@@ -71,10 +71,11 @@ class trochoid():
         self.ringPinNum = ringPinNum                          #外ピン数
         self.ringPinPitchRadius = ringPinPitchRadius    #外ピン配置半径
 
-        if ringPinRadius < eccentricAmount:
-            return False
-        if not isinstance(ringPinNum, int):
-            return False
+        # if ringPinRadius < eccentricAmount:
+        #     return False
+        # if not isinstance(ringPinNum, int):
+        #     return False
+        # return True
 
     def getTrochoidParallelCurvePoints(self, pointNum=100, shift=True):
         i = self.trochoidalGearThoothNum / (self.ringPinNum - self.trochoidalGearThoothNum)
@@ -82,6 +83,8 @@ class trochoid():
         rc = rm*i
         rd = self.eccentricAmount
         d  = self.ringPinRadius
+
+        # ui.messageBox("rm="+str(rm)+"\ni="+ str(i)+"\nrc="+str(rc)+"\nrd="+str(rd)+"\nd="+str(d))
 
         points=[]
         thetaRange = list(range(0, pointNum))#+[0]
@@ -91,6 +94,7 @@ class trochoid():
             yd =  (rc+rm)*(math.cos(theta)) - rd*((rc+rm)/rm)*math.cos((rc+rm)/rm*theta)
             xd = -(rc+rm)*(math.sin(theta)) + rd*((rc+rm)/rm)*math.sin((rc+rm)/rm*theta)
             sqXY = math.sqrt(xd**2+yd**2)
+            # trochoid curve
             xa = (rc+rm)*math.cos(theta) - rd*math.cos((rc+rm)/rm*theta)
             ya = (rc+rm)*math.sin(theta) - rd*math.sin((rc+rm)/rm*theta)
 
@@ -506,6 +510,9 @@ class MyCommandValidateInputsHandler(adsk.core.ValidateInputsEventHandler):
             if param.ringPinPitchDia <=0:
                 args.areInputsValid = False
             if param.ringPinDia <=0:
+                args.areInputsValid = False
+            #rm>=rd
+            if param.eccentricAmount >= (param.ringPinPitchDia/2.0)/(param.ringPinNum):
                 args.areInputsValid = False
 
             if param.isDrawCentorHole is True:
