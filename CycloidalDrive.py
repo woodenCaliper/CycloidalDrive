@@ -353,7 +353,7 @@ def inputsToParameter(commandInputs):
     drawingParam.ringPinDia    = unitsMgr.evaluateExpression(ringPinDiaInput.expression)
     drawingParam.ringPinPitchDia = unitsMgr.evaluateExpression(ringPinPitchDiaInput.expression)
     drawingParam.eccentricAmount   = unitsMgr.evaluateExpression(eccentricAmountInput.expression)
-    drawingParam.plotDotNum        = int(plotNumInput.value) * drawingParam.ringPinNum
+    drawingParam.plotDotNum        = int(plotNumInput.value) * int(reducationRatioInput.value)
 
     if drawingParam.isDrawCentorHole:
         troGearCentorHoleDiaInput    = commandInputs.itemById(ID_OPT_CGH_D)
