@@ -77,33 +77,31 @@ class trochoid():
         # return True
 
     def getTrochoidParallelCurvePoints(self, pointNum=100, shift=True):
-        i = self.trochoidalGearThoothNum / (self.ringPinNum - self.trochoidalGearThoothNum)
+        i  = self.trochoidalGearThoothNum / (self.ringPinNum - self.trochoidalGearThoothNum)
         rm = self.ringPinPitchRadius/(i+1)
         rc = rm*i
         rd = self.eccentricAmount
         d  = self.ringPinRadius
 
-        # ui.messageBox("rm="+str(rm)+"\ni="+ str(i)+"\nrc="+str(rc)+"\nrd="+str(rd)+"\nd="+str(d))
+        # trochoid curve
+        fxa  = lambda theta: (rc+rm)*math.cos(theta) - rd*math.cos((rc+rm)/rm*theta)
+        fya  = lambda theta: (rc+rm)*math.sin(theta) - rd*math.sin((rc+rm)/rm*theta)
+        # differential of trochoid curve
+        dfxa = lambda theta:-(rc+rm)*math.sin(theta) + ((rc+rm)/rm)*rd*math.sin((rc+rm)/rm*theta)
+        dfya = lambda theta: (rc+rm)*math.cos(theta) - ((rc+rm)/rm)*rd*math.cos((rc+rm)/rm*theta)
 
         points=[]
-        thetaRange = list(range(0, pointNum))#+[0]
-        for t in thetaRange:
-            theta = 2*math.pi * (t/pointNum)
+        for i in range(0, pointNum):
+            theta = (i/pointNum) * 2*math.pi
 
-            yd =  (rc+rm)*(math.cos(theta)) - rd*((rc+rm)/rm)*math.cos((rc+rm)/rm*theta)
-            xd = -(rc+rm)*(math.sin(theta)) + rd*((rc+rm)/rm)*math.sin((rc+rm)/rm*theta)
-            sqXY = math.sqrt(xd**2+yd**2)
-            # trochoid curve
-            xa = (rc+rm)*math.cos(theta) - rd*math.cos((rc+rm)/rm*theta)
-            ya = (rc+rm)*math.sin(theta) - rd*math.sin((rc+rm)/rm*theta)
+            dxa = dfxa(theta)
+            dya = dfya(theta)
+            sqXY = math.sqrt(dxa**2+dya**2)
 
-            x = xa + d/sqXY * -yd
-            y = ya + d/sqXY *  xd
+            x = fxa(theta) + d*-dya/sqXY
+            y = fya(theta) + d* dxa/sqXY
 
-            # x=(rc+rm)*math.cos(theta) - rd*math.cos((rc+rm)/rm*theta)
-            # y=(rc+rm)*math.sin(theta) - rd*math.sin((rc+rm)/rm*theta)
             points.append([x,y])
-
         if shift:
             centor = [self.eccentricAmount,0]
             points = self.shiftTrochoidPoints(points, centor)
@@ -111,27 +109,24 @@ class trochoid():
             centor = [0,0]
         return (points, centor)
 
-
     # @param rc 定円半径
     # @param rm 動円半径
     # @param rd 動円の描画半径
-    # @return list of [x,y]
+    # @return (list of [x,y], centor)
     def getTrochoidPoints(self, pointNum=100, shift=False):
-        i = self.trochoidalGearThoothNum / (self.ringPinNum - self.trochoidalGearThoothNum)
+        i  = self.trochoidalGearThoothNum / (self.ringPinNum - self.trochoidalGearThoothNum)
         rm = self.ringPinPitchRadius/(i+1)
         rc = rm*i
         rd = self.eccentricAmount
 
-        #ui.messageBox("rm="+str(rm)+"\ni="+ str(i)+"\nrc="+str(rc)+"\nrd="+str(rd))
+        # trochoid curve
+        fxa  = lambda theta: (rc+rm)*math.cos(theta) - rd*math.cos((rc+rm)/rm*theta)
+        fya  = lambda theta: (rc+rm)*math.sin(theta) - rd*math.sin((rc+rm)/rm*theta)
 
         points=[]
-        thetaRange = list(range(0, pointNum))#+[0]
-        for t in thetaRange:
-            theta=(2*math.pi/pointNum*t)
-            x=(rc+rm)*math.cos(theta) - rd*math.cos((rc+rm)/rm*theta)
-            y=(rc+rm)*math.sin(theta) - rd*math.sin((rc+rm)/rm*theta)
-            points.append([x,y])
-
+        for i in range(0, pointNum):
+            theta = (i/pointNum) * 2*math.pi
+            points.append([fxa(theta),fya(theta)])
         if shift:
             centor = [self.eccentricAmount,0]
             points = self.shiftTrochoidPoints(points, centor)
@@ -142,8 +137,8 @@ class trochoid():
     # @return [list of ringPins centorXY, radius]
     def getOutpinPoints(self):
         points = []
-        for i in list(range(self.ringPinNum)):
-            theta = 2*math.pi* i/self.ringPinNum
+        for i in range(self.ringPinNum):
+            theta = 2*math.pi * (i/self.ringPinNum)
             x = self.ringPinPitchRadius*math.cos(theta)
             y = self.ringPinPitchRadius*math.sin(theta)
             points.append([x,y])
@@ -402,7 +397,7 @@ def settingComandInputsItem(inputs):
     necessaryTabChildInputs.addValueInput(ID_NES_EA,   "Eccentric amount",        "mm", adsk.core.ValueInput.createByReal(0.2))
     necessaryTabChildInputs.addValueInput(ID_NES_RGPD, 'Ring pin diameter',       'mm', adsk.core.ValueInput.createByReal(1.0))
     necessaryTabChildInputs.addValueInput(ID_NES_RGPPD,'Ring pin pitch diameter', 'mm', adsk.core.ValueInput.createByReal(8.0))
-    necessaryTabChildInputs.addIntegerSpinnerCommandInput(ID_NES_CGPN, "Cycloidal curve plot num par thooth", 2, 99999, 1, 5)
+    necessaryTabChildInputs.addIntegerSpinnerCommandInput(ID_NES_CGPN, "Cycloidal curve plot num par thooth", 2, 99999, 1, 6)
       #optionary tab
     optionTabInput = inputs.addTabCommandInput(ID_OPTIONAL_TAB, "optionary param")
     optionTabChildInputs = optionTabInput.children
