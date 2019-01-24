@@ -2,7 +2,6 @@ import adsk.core, adsk.fusion, traceback
 import math
 from collections import namedtuple
 
-
 COMMAND_ID = "trochoid_decelerator"
 #COMMAND_ID name
   #Tab
@@ -172,8 +171,8 @@ class DrawCycloReducer():
         rgpn  = drawingParam.ringPinNum
         rgpr  = drawingParam.ringPinDia/2.0
         rgppr = drawingParam.ringPinPitchDia/2.0
-        e    = drawingParam.eccentricAmount
-        pdn  = drawingParam.plotDotNum
+        e     = drawingParam.eccentricAmount
+        pdn   = drawingParam.plotDotNum
 
         self.cycoroidDecelerator = trochoid()
         self.cycoroidDecelerator.setParam(int(rgpn), rgpr, rgppr, e)
@@ -191,8 +190,8 @@ class DrawCycloReducer():
                 compOutputDisk.name = "output disk"
         else:
             compTrochoidalGear = activeComp
-            compRingPin      = activeComp
-            compOutputDisk    = activeComp
+            compRingPin        = activeComp
+            compOutputDisk     = activeComp
 
         if drawingParam.isSeparateSketch:
             trochoidGearSketch = compTrochoidalGear.sketches.add(compTrochoidalGear.xYConstructionPlane)
@@ -206,10 +205,9 @@ class DrawCycloReducer():
             ske = compTrochoidalGear.sketches.add(activeComp.xYConstructionPlane)
             ske.name = "cycloidal drive"
             trochoidGearSketch = ske
-            ringPinSketch     = ske
+            ringPinSketch      = ske
             if drawingParam.isDrawOutputDiskPin:
-                outputDiskSketch  = ske
-
+                outputDiskSketch = ske
 
         #スケッチ作成
         self.createTrochoidalGear(trochoidGearSketch, drawingParam)
@@ -223,48 +221,53 @@ class DrawCycloReducer():
             self.createOutputDisk(outputDiskSketch, drawingParam)
 
     def createTrochoidalGear(self, sketch, drawingParam):
-        # app = adsk.core.Application.get()
-        # ui = app.userInterface
-
         z=0
         #トロコイド曲線の計算
-        (trochoidalGearPoints, trochoidalGearCentor) = self.cycoroidDecelerator.getTrochoidParallelCurvePoints(drawingParam.plotDotNum)
+        (trochoidParallelPoints, trochoidalGearCentor) = self.cycoroidDecelerator.getTrochoidParallelCurvePoints(drawingParam.plotDotNum)
 
         #トロコイド曲線の中心点の描画
         dotPoint = adsk.core.Point3D.create(trochoidalGearCentor[0], trochoidalGearCentor[1], z)
-        a = sketch.sketchPoints.add(dotPoint)
+        centorPoint = sketch.sketchPoints.add(dotPoint)
+        centorPoint.isFixed = True
+
+        #トロコイド平行曲線の描画
+        splinePoints = adsk.core.ObjectCollection.create()
+        for (xp,yp) in trochoidParallelPoints:
+            splinePoints.add(adsk.core.Point3D.create(xp, yp, z))
+        trochoidCurve = sketch.sketchCurves.sketchFittedSplines.add(splinePoints)
+        trochoidCurve.isClosed = True
+        trochoidCurve.isFixed  = True
 
         #トロコイド曲線の描画
-        splinePoints = adsk.core.ObjectCollection.create()
-        for p in trochoidalGearPoints:
-            splinePoint = adsk.core.Point3D.create(p[0], p[1], z)
-            splinePoints.add(splinePoint)
-        trochoidCurve = sketch.sketchCurves.sketchFittedSplines.add(splinePoints)
-        trochoidCurve.isClosed  = True
+        (trochoidPoints, trochoidalGearCentor) = self.cycoroidDecelerator.getTrochoidPoints(drawingParam.plotDotNum, True)
+        splinePoints2 = adsk.core.ObjectCollection.create()
+        for (xa,ya) in trochoidPoints:
+            splinePoints2.add(adsk.core.Point3D.create(xa, ya, z))
+        trochoidCurve2 = sketch.sketchCurves.sketchFittedSplines.add(splinePoints2)
+        trochoidCurve2.isClosed = True
+        trochoidCurve2.isFixed  = True
+        trochoidCurve2.isConstruction = True
 
     def createTrochoidalGearAroundHole(self, sketch, drawingParam):
-        # app = adsk.core.Application.get()
-        # ui = app.userInterface
-
         n = drawingParam.troGearAroundHoleNum
-        d = drawingParam.troGearAroundHoleDia
+        r = drawingParam.troGearAroundHoleDia/2.0
         pd = drawingParam.troGearAroundHolePosDia
         pdn = drawingParam.plotDotNum
 
-        z=0
-
         (trochoidalGearPoints, trochoidalGearCentor) = self.cycoroidDecelerator.getTrochoidPoints(pdn, True)
+
+        fx = lambda theta : pd/2.0 * math.cos(theta) + trochoidalGearCentor[0]
+        fy = lambda theta : pd/2.0 * math.sin(theta) + trochoidalGearCentor[1]
+        z=0
 
         #トロコイド曲線の中心点の描画
         dotPoint = adsk.core.Point3D.create(trochoidalGearCentor[0], trochoidalGearCentor[1], z)
         sketch.sketchPoints.add(dotPoint)
 
         #円
-        for i in list(range(n)):
-            theta = (i/n)*2*math.pi
-            x = pd/2.0 * math.cos(theta) + trochoidalGearCentor[0]
-            y = pd/2.0 * math.sin(theta) + trochoidalGearCentor[1]
-            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(x, y, z), d/2.0)
+        for i in range(n):
+            theta = (float(i)/n)*2*math.pi
+            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(fx(theta), fy(theta), z), r)
 
     def createTrochoidalGearCentorHole(self, sketch, drawingParam):
         # app = adsk.core.Application.get()
@@ -501,7 +504,7 @@ class MyCommandValidateInputsHandler(adsk.core.ValidateInputsEventHandler):
             inputs = cmd.commandInputs
             param  = inputsToParameter(inputs)
 
-            cmd.setDialogInitialSize(300,500)
+            # cmd.setDialogInitialSize(300,500)
             # cmd.setDialogMinimumSize(500,500)
 
 
@@ -551,9 +554,6 @@ class MyCommandValidateInputsHandler(adsk.core.ValidateInputsEventHandler):
 
             sepatateSketchInput = inputs.itemById(ID_DR_SE_S)
             sepatateComponentInput = inputs.itemById(ID_DR_SE_C)
-
-
-
 
             if sepatateComponentInput.value is True:
                 sepatateSketchInput.value = True
