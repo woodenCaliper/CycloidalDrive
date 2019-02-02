@@ -1,5 +1,5 @@
 import adsk.core, adsk.fusion, traceback
-import math
+import math, time
 from collections import namedtuple
 
 COMMAND_ID = "trochoid_decelerator"
@@ -51,87 +51,156 @@ COMMAND_NAME = 'create cyclo reducer'
 COMMAND_DESCRIPTION = 'サイクロ減速機用曲線作成スクリプト'
 
 
+##
+# @brief 合成シンプソン法による近似積分
+# @param func f(x)の関数、例)lambda x:x**3
+# @param upper 積分範囲の上限
+# @param lower 積分範囲の下限
+# @param splitNum 何分割するか、偶数のみ
+def compositeSimpson(func,upper,lower, splitNum):
+    splitNum=int(splitNum)
+    if splitNum&0b1:    #奇数
+        splitNum += 1
+    h = (upper-lower)/splitNum
+    ysum = func(lower) + 4*func(lower+h) + func(upper)
+    for i in range(2,splitNum)[::2]:
+        ysum += 2*func(lower+i*h) + 4*func(lower+(i+1)*h)
+    return h/3*(ysum)
 
-class trochoid():
-    def __init__(self):
-        #ringPinRadius = eccentricAmount
-        self.eccentricAmount = 0
-        self.trochoidalGearThoothNum = 0
-        self.ringPinNum = 0
-        self.ringPinPitchRadius=0
+##
+# @brief 二分法
+def bisectionMethod(func, upper, lower, maxError, maxCalcTimes=100):
+    maxError=abs(maxError)
+    calcTimes=0
+    while True:
+        calcTimes+=1
+        x = (upper+lower)/2.0
+        if (0.0 < func(x)*func(upper)):#符号判定
+            upper=x
+        else:
+            lower=x
+        if (upper-lower<=maxError):
+            return x
+        elif (calcTimes==maxCalcTimes):
+            # ui.messageBox("error")
+            return x
 
-    def setParam(self, ringPinNum, ringPinRadius, ringPinPitchRadius,
-                   eccentricAmount, offsetValue=0):
-        self.trochoidalGearThoothNum = ringPinNum-1          #内歯数
+##
+# @brief サイクロ減速機の部品の値を取得するクラス
+class CycloidalReducer():
+    ##
+    # @brief パラメータの設定
+    # @param ringPinNum 外ピンの数
+    # @param riingPinRadius 外ピン半径
+    # @param ringPinPitchRadius 外ピンの配置半径
+    # @param eccentricAmount 偏心量
+    def __init__(self, ringPinNum, ringPinRadius, ringPinPitchRadius, eccentricAmount):
+        self.ringPinNum              = ringPinNum           #外ピン数
+        self.ringPinRadius           = ringPinRadius        #外歯半径
+        self.ringPinPitchRadius      = ringPinPitchRadius   #外ピン配置半径
+        self.trochoidalGearThoothNum = ringPinNum-1         #内歯数
+        self.eccentricAmount         = eccentricAmount      #偏心量
         self.reducationRatio = self.trochoidalGearThoothNum / (self.ringPinNum - self.trochoidalGearThoothNum)#減速比
 
-        self.eccentricAmount = eccentricAmount                #偏心量
-        self.ringPinRadius = ringPinRadius                    #外歯半径
-        self.ringPinNum = ringPinNum                          #外ピン数
-        self.ringPinPitchRadius = ringPinPitchRadius    #外ピン配置半径
+        self.rm = self.ringPinPitchRadius/(self.reducationRatio+1)  #定円半径
+        self.rc = self.rm*self.reducationRatio                      #動円半径
+        self.rd = self.eccentricAmount                              #動円の描画半径
+        self.d  = self.ringPinRadius                                #オフセット量
 
-        # if ringPinRadius < eccentricAmount:
-        #     return False
-        # if not isinstance(ringPinNum, int):
-        #     return False
-        # return True
+    ## x of trochoid curve
+    # @brief \f$f_{xa}(p)\f$
+    def fxa(self, p):
+        return (self.rc+self.rm)*math.cos(p) - self.rd*math.cos((self.rc+self.rm)/self.rm*p)
+    ## y of trochoid curve
+    # @brief \f$f_{ya}(p)\f$
+    def fya(self, p):
+        return (self.rc+self.rm)*math.sin(p) - self.rd*math.sin((self.rc+self.rm)/self.rm*p)
+    ## x of differential trochoid curve
+    # @brief \f$ \frac{df_{xa}(p)}{dp} \f$
+    def dfxa(self, p):
+        return -(self.rc+self.rm)*math.sin(p) + ((self.rc+self.rm)/self.rm)*self.rd*math.sin((self.rc+self.rm)/self.rm*p)
+    ## y of differential trochoid curve
+    # @brief \f$ \frac{df_{ya}(p)}{dp} \f$
+    def dfya(self, p):
+        return (self.rc+self.rm)*math.cos(p) - ((self.rc+self.rm)/self.rm)*self.rd*math.cos((self.rc+self.rm)/self.rm*p)
+    ## x of trochoidal parallel curve
+    # @brief \f$ f_{xp}(p) \f$
+    def fxp(self, p):
+        dxa = self.dfxa(p)
+        dya = self.dfya(p)
+        return self.fxa(p) + self.d*-dya / math.sqrt(dxa**2+dya**2)
+    ## y of trochoidal parallel curve
+    # @brief \f$ f_{yp}(p) \f$
+    def fyp(self, p):
+        dxa = self.dfxa(p)
+        dya = self.dfya(p)
+        return self.fya(p) + self.d*dxa / math.sqrt(dxa**2+dya**2)
+    ## x of differential trochoidal parallel curve
+    # @brief \f$ \frac{df_{xp}(p)}{dp} \f$
+    def dfxp(self, p):
+        rt = (self.rc/self.rm+1)*p
+        q = self.rd**2 -2*self.rd*self.rm*math.cos(self.rc/self.rm*p) + self.rm**2
+        a = (self.d/(math.sqrt(q))-1) * ((-self.rd*(self.rc + self.rm)/self.rm)*math.sin(p*(self.rc + self.rm)/self.rm) + self.rm*math.sin(p))
+        b = ( self.d*self.rc*self.rd*math.sin(self.rc*p/self.rm)*(-self.rd*math.cos(p*(self.rc + self.rm)/self.rm) + self.rm*math.cos(p))/(q**(3/2)) )
+        c = -self.rc*math.sin(p)
+        return a+b+c
+    ## y of differential trochoidal parallel curve
+    # @brief \f$ \frac{df_{yp}(p)}{dp} \f$
+    def dfyp(self, p):
+        rt = (self.rc/self.rm+1)*p
+        q = self.rd**2 -2*self.rd*self.rm*math.cos(self.rc/self.rm*p) + self.rm**2
+        a = (self.d/(math.sqrt(q))-1) * (( self.rd*(self.rc + self.rm)/self.rm)*math.cos(p*(self.rc + self.rm)/self.rm) - self.rm*math.cos(p))
+        b = - ( self.d*self.rc*self.rd*math.sin(self.rc*p/self.rm)*( self.rd*math.sin(p*(self.rc + self.rm)/self.rm) - self.rm*math.sin(p))/(q**(3/2)) )
+        c = + self.rc*math.cos(p)
+        return a+b+c
+    ## 周長を求める
+    def getPerimeter(self, upper, lower, splitNum=1000):
+        dfl = lambda p: math.sqrt(self.dfxp(p)**2 + self.dfyp(p)**2) #周長の微分
+        return compositeSimpson(dfl, upper, lower, splitNum)
+    ## とある点から周長を一定の距離分なぞった点を取得
+    def getConstDistancePoint(self, currentP, distance, upperP):
+        f=lambda p: self.getPerimeter(p, currentP, 100)-distance
+        return bisectionMethod(f, upperP, currentP, self.pointError)
 
-    def getTrochoidParallelCurvePoints(self, pointNum=100, shift=True):
-        i  = self.trochoidalGearThoothNum / (self.ringPinNum - self.trochoidalGearThoothNum)
-        rm = self.ringPinPitchRadius/(i+1)
-        rc = rm*i
-        rd = self.eccentricAmount
-        d  = self.ringPinRadius
+    ## トロコイド曲線の点をプロット
+    # @return (list of [x,y], centor)
+    def getTrochoidPoints(self, pointNum, shift=False):
+        centor = [self.eccentricAmount,0] if shift else [0,0]
+        lastPOneThooth = 2*math.pi/self.trochoidalGearThoothNum
+        pOneThooth = [i*lastPOneThooth/pointNum for i in range(pointNum)]
 
-        # trochoid curve
-        fxa  = lambda theta: (rc+rm)*math.cos(theta) - rd*math.cos((rc+rm)/rm*theta)
-        fya  = lambda theta: (rc+rm)*math.sin(theta) - rd*math.sin((rc+rm)/rm*theta)
-        # differential of trochoid curve
-        dfxa = lambda theta:-(rc+rm)*math.sin(theta) + ((rc+rm)/rm)*rd*math.sin((rc+rm)/rm*theta)
-        dfya = lambda theta: (rc+rm)*math.cos(theta) - ((rc+rm)/rm)*rd*math.cos((rc+rm)/rm*theta)
+        #残りの歯の点をコピー&回転で作る
+        pAllThooth = []
+        for i in range(self.trochoidalGearThoothNum):
+            pAllThooth += [i*lastPOneThooth+p for p in pOneThooth]
 
         points=[]
-        for i in range(0, pointNum):
-            theta = (i/pointNum) * 2*math.pi
-
-            dxa = dfxa(theta)
-            dya = dfya(theta)
-            sqXY = math.sqrt(dxa**2+dya**2)
-
-            x = fxa(theta) + d*-dya/sqXY
-            y = fya(theta) + d* dxa/sqXY
-
-            points.append([x,y])
-        if shift:
-            centor = [self.eccentricAmount,0]
-            points = self.shiftTrochoidPoints(points, centor)
-        else:
-            centor = [0,0]
+        for p in pAllThooth:
+            points.append([self.fxa(p)+centor[0], self.fya(p)+centor[1]])
         return (points, centor)
 
-    # @param rc 定円半径
-    # @param rm 動円半径
-    # @param rd 動円の描画半径
+    ## トロコイド並行曲線の点のプロット
     # @return (list of [x,y], centor)
-    def getTrochoidPoints(self, pointNum=100, shift=False):
-        i  = self.trochoidalGearThoothNum / (self.ringPinNum - self.trochoidalGearThoothNum)
-        rm = self.ringPinPitchRadius/(i+1)
-        rc = rm*i
-        rd = self.eccentricAmount
+    def getTrochoidParallelCurvePoints(self, pointNum, shift=True):
+        centor = [self.eccentricAmount,0] if shift else [0,0]
+        lastPOneThooth = 2*math.pi/self.trochoidalGearThoothNum
 
-        # trochoid curve
-        fxa  = lambda theta: (rc+rm)*math.cos(theta) - rd*math.cos((rc+rm)/rm*theta)
-        fya  = lambda theta: (rc+rm)*math.sin(theta) - rd*math.sin((rc+rm)/rm*theta)
+        perimeterOneThooth = self.getPerimeter(lastPOneThooth, 0, 1000)/pointNum
+        self.pointError = perimeterOneThooth/pointNum/1000000
+
+        pOneThooth=[0]
+        for i in range(pointNum)[1:]:
+            px = pOneThooth[-1]
+            pOneThooth.append( self.getConstDistancePoint(px, perimeterOneThooth, lastPOneThooth) )
+
+        #残りの歯の点をコピー&回転で作る
+        pAllThooth = []
+        for i in range(self.trochoidalGearThoothNum):
+            pAllThooth += [i*lastPOneThooth+p for p in pOneThooth]
 
         points=[]
-        for i in range(0, pointNum):
-            theta = (i/pointNum) * 2*math.pi
-            points.append([fxa(theta),fya(theta)])
-        if shift:
-            centor = [self.eccentricAmount,0]
-            points = self.shiftTrochoidPoints(points, centor)
-        else:
-            centor = [0,0]
+        for p in pAllThooth:
+            points.append([self.fxp(p)+centor[0], self.fyp(p)+centor[1]])
         return (points, centor)
 
     # @return [list of ringPins centorXY, radius]
@@ -142,16 +211,8 @@ class trochoid():
             x = self.ringPinPitchRadius*math.cos(theta)
             y = self.ringPinPitchRadius*math.sin(theta)
             points.append([x,y])
-        return [points, self.ringPinRadius]
+        return (points, self.ringPinRadius)
 
-    # @param shiftPoints list of [x,y]
-    # @param shiftValue [x,y]
-    # @return shifted points
-    def shiftTrochoidPoints(self, shiftPoints, shiftValueXY):
-        shiftedPoints = []
-        for p in shiftPoints:
-            shiftedPoints.append( [p[0]+shiftValueXY[0], p[1]+shiftValueXY[1]] )
-        return shiftedPoints
 
 class DrawCycloReducer():
     def __init__(self, inputs):
@@ -169,8 +230,7 @@ class DrawCycloReducer():
         e     = drawingParam.eccentricAmount
         pdn   = drawingParam.plotDotNum
 
-        self.cycoroidDecelerator = trochoid()
-        self.cycoroidDecelerator.setParam(int(rgpn), rgpr, rgppr, e)
+        self.cycoroidDecelerator = CycloidalReducer(int(rgpn), rgpr, rgppr, e)
 
         if drawingParam.isSeparateComponent:
             occTrochoidalGear = activeComp.occurrences.addNewComponent(adsk.core.Matrix3D.create())
@@ -265,9 +325,6 @@ class DrawCycloReducer():
             sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(fx(theta), fy(theta), z), r)
 
     def createTrochoidalGearCentorHole(self, sketch, drawingParam):
-        # app = adsk.core.Application.get()
-        # ui = app.userInterface
-
         hd = drawingParam.troGearCentorHoleDia
         pdn = drawingParam.plotDotNum
         z=0
@@ -283,9 +340,6 @@ class DrawCycloReducer():
         sketch.sketchCurves.sketchCircles.addByCenterRadius(p, hd/2.0)
 
     def createRingPin(self, sketch, drawingParam):
-        # app = adsk.core.Application.get()
-        # ui = app.userInterface
-
         z=0
         #外ピン配置円の中心点の描画
         (points, radius) = self.cycoroidDecelerator.getOutpinPoints()
@@ -297,8 +351,6 @@ class DrawCycloReducer():
             sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(p[0], p[1], z), radius)
 
     def createOutputDisk(self, sketch, drawingParam):
-        # app = adsk.core.Application.get()
-        # ui = app.userInterface
         z=0
 
         #外ピン配置円の中心点の描画
@@ -355,7 +407,7 @@ def inputsToParameter(commandInputs):
     drawingParam.ringPinDia    = unitsMgr.evaluateExpression(ringPinDiaInput.expression)
     drawingParam.ringPinPitchDia = unitsMgr.evaluateExpression(ringPinPitchDiaInput.expression)
     drawingParam.eccentricAmount   = unitsMgr.evaluateExpression(eccentricAmountInput.expression)
-    drawingParam.plotDotNum        = int(plotNumInput.value) * int(reducationRatioInput.value)
+    drawingParam.plotDotNum        = int(plotNumInput.value)
 
     if drawingParam.isDrawCentorHole:
         troGearCentorHoleDiaInput    = commandInputs.itemById(ID_OPT_CGH_D)
@@ -502,7 +554,6 @@ class MyCommandValidateInputsHandler(adsk.core.ValidateInputsEventHandler):
             # cmd.setDialogInitialSize(300,500)
             # cmd.setDialogMinimumSize(500,500)
 
-
             if param.eccentricAmount <=0:
                 args.areInputsValid = False
             if param.ringPinPitchDia <=0:
@@ -648,6 +699,7 @@ def run(context):
     ui = None
     try:
         # アプリケーションを取得
+        print("addIn start")
         global app
         app = adsk.core.Application.get()
 
