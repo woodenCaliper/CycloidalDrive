@@ -282,14 +282,14 @@ class DrawCycloReducer():
         (trochoidParallelPoints, trochoidalGearCentor) = self.cycoroidDecelerator.getTrochoidParallelCurvePoints(drawingParam.plotDotNum)
 
         #トロコイド曲線の中心点の描画
-        centorPoint2D = sketch.sketchPoints.add( adsk.core.Point3D.create(trochoidalGearCentor[0], trochoidalGearCentor[1], z) )
+        self.trochoidCentorPoint2D = sketch.sketchPoints.add( adsk.core.Point3D.create(trochoidalGearCentor[0], trochoidalGearCentor[1], z) )
         #拘束
-        textPoint3D = adsk.core.Point3D.create((centorPoint2D.geometry.x+sketchOriginPoint.geometry.x)/2,
-                                               (centorPoint2D.geometry.y+sketchOriginPoint.geometry.y)/2, z)
-        sketch.sketchDimensions.addDistanceDimension(centorPoint2D, sketchOriginPoint,
+        textPoint3D = adsk.core.Point3D.create((self.trochoidCentorPoint2D.geometry.x+sketchOriginPoint.geometry.x)/2,
+                                               (self.trochoidCentorPoint2D.geometry.y+sketchOriginPoint.geometry.y)/2, z)
+        sketch.sketchDimensions.addDistanceDimension(self.trochoidCentorPoint2D, sketchOriginPoint,
                                                      adsk.fusion.DimensionOrientations.HorizontalDimensionOrientation,
                                                      textPoint3D)
-        sketch.sketchDimensions.addDistanceDimension(centorPoint2D,sketchOriginPoint,
+        sketch.sketchDimensions.addDistanceDimension(self.trochoidCentorPoint2D,sketchOriginPoint,
                                                      adsk.fusion.DimensionOrientations.VerticalDimensionOrientation,
                                                      textPoint3D)
         # centorPoint.isFixed = True
@@ -323,30 +323,30 @@ class DrawCycloReducer():
         fx = lambda theta : pd/2.0 * math.cos(theta) + trochoidalGearCentor[0]
         fy = lambda theta : pd/2.0 * math.sin(theta) + trochoidalGearCentor[1]
         z=0
-
-        #トロコイド曲線の中心点の描画
-        dotPoint = adsk.core.Point3D.create(trochoidalGearCentor[0], trochoidalGearCentor[1], z)
-        sketch.sketchPoints.add(dotPoint)
+        firstCircle = sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(fx(0), fy(0), z), r)
+        self.distanceDimentionEasy(sketch, self.trochoidCentorPoint2D, firstCircle.centerSketchPoint)#中心位置の拘束
+        self.diameterDimentionEasy(sketch, firstCircle)#直径の拘束
 
         #円
-        for i in range(n):
+        for i in range(n)[1:]:
             theta = (float(i)/n)*2*math.pi
-            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(fx(theta), fy(theta), z), r)
+            circle = sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(fx(theta), fy(theta), z), r)
+            # self.distanceDimentionEasy(sketch, sketchOriginPoint, circle.centerSketchPoint)#中心位置の拘束
+            sketch.geometricConstraints.addEqual(firstCircle, circle) #直径の拘束
 
     def createTrochoidalGearCentorHole(self, sketch, drawingParam):
+        sketchOriginPoint = sketch.originPoint
         hd = drawingParam.troGearCentorHoleDia
         pdn = drawingParam.plotDotNum
         z=0
 
         (trochoidalGearPoints, trochoidalGearCentor) = self.cycoroidDecelerator.getTrochoidPoints(pdn, True)
 
-        #トロコイド曲線の中心点の描画
-        dotPoint = adsk.core.Point3D.create(trochoidalGearCentor[0], trochoidalGearCentor[1], z)
-        sketch.sketchPoints.add(dotPoint)
-
         #円
         p = adsk.core.Point3D.create(trochoidalGearCentor[0], trochoidalGearCentor[1], z)
-        sketch.sketchCurves.sketchCircles.addByCenterRadius(p, hd/2.0)
+        circle = sketch.sketchCurves.sketchCircles.addByCenterRadius(p, hd/2.0)
+        self.distanceDimentionEasy(sketch, sketchOriginPoint, circle.centerSketchPoint)#中心位置の拘束
+        self.diameterDimentionEasy(sketch, circle)#直径の拘束
 
     def distanceDimentionEasy(self, sketch, sketchPoint1, sketchPoint2):
         z=0
@@ -385,7 +385,9 @@ class DrawCycloReducer():
             sketch.geometricConstraints.addEqual(firstThoothCircle, circle) #直径の拘束
 
 
+    #外ピン配置円の中心点の描画
     def createOutputDisk(self, sketch, drawingParam):
+        sketchOriginPoint = sketch.originPoint
         z=0
         #外ピン配置円の中心点の描画
         (points, radius) = self.cycoroidDecelerator.getOutpinPoints()
@@ -394,18 +396,20 @@ class DrawCycloReducer():
         sketch.sketchPoints.add(dotPoint)
 
         #外ピンの円を描画
-        # n=drawingParam.troGearAroundHoleNum
-        # positionRadius = drawingParam.troGearAroundHolePosDia/2.0
-        # holeRadius     = drawingParam.troGearAroundHoleDia/2.0 - drawingParam.eccentricAmount
         n              = drawingParam.outDiskPinNum
         positionRadius = drawingParam.outDiskPinPosDia/2.0
         holeRadius     = drawingParam.outDiskPinDia/2.0
-        for i in list(range(n)):
-            theta = i/n*2*math.pi
+        fx = lambda theta : positionRadius * math.cos(theta)
+        fy = lambda theta : positionRadius * math.sin(theta)
 
-            x = positionRadius*math.cos(theta)
-            y = positionRadius*math.sin(theta)
-            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(x, y, z), holeRadius)
+        firstCircle = sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(fx(0), fy(0), z), holeRadius)
+        self.distanceDimentionEasy(sketch, sketchOriginPoint, firstCircle.centerSketchPoint)#中心位置の拘束
+        self.diameterDimentionEasy(sketch, firstCircle)#直径の拘束
+
+        for i in range(n)[1:]:
+            theta = i/n*2*math.pi
+            circle = sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(fx(theta), fy(theta), z), holeRadius)
+            sketch.geometricConstraints.addEqual(firstCircle, circle) #直径の拘束
 
 def inputsToParameter(commandInputs):
     drawingParam = namedtuple("DrawingParam",
