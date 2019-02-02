@@ -266,7 +266,7 @@ class DrawCycloReducer():
 
         #スケッチ作成
         self.createTrochoidalGear(trochoidGearSketch, drawingParam)
-        self.createRingPin(ringPinSketch, drawingParam)
+        self.createRingGear(ringPinSketch, drawingParam)
 
         if drawingParam.isDrawCentorHole:
             self.createTrochoidalGearCentorHole(trochoidGearSketch, drawingParam)
@@ -276,19 +276,28 @@ class DrawCycloReducer():
             self.createOutputDisk(outputDiskSketch, drawingParam)
 
     def createTrochoidalGear(self, sketch, drawingParam):
+        sketchOriginPoint = sketch.originPoint
         z=0
         #トロコイド曲線の計算
         (trochoidParallelPoints, trochoidalGearCentor) = self.cycoroidDecelerator.getTrochoidParallelCurvePoints(drawingParam.plotDotNum)
 
         #トロコイド曲線の中心点の描画
-        dotPoint = adsk.core.Point3D.create(trochoidalGearCentor[0], trochoidalGearCentor[1], z)
-        centorPoint = sketch.sketchPoints.add(dotPoint)
-        centorPoint.isFixed = True
+        centorPoint2D = sketch.sketchPoints.add( adsk.core.Point3D.create(trochoidalGearCentor[0], trochoidalGearCentor[1], z) )
+        #拘束
+        textPoint3D = adsk.core.Point3D.create((centorPoint2D.geometry.x+sketchOriginPoint.geometry.x)/2,
+                                               (centorPoint2D.geometry.y+sketchOriginPoint.geometry.y)/2, z)
+        sketch.sketchDimensions.addDistanceDimension(centorPoint2D, sketchOriginPoint,
+                                                     adsk.fusion.DimensionOrientations.HorizontalDimensionOrientation,
+                                                     textPoint3D)
+        sketch.sketchDimensions.addDistanceDimension(centorPoint2D,sketchOriginPoint,
+                                                     adsk.fusion.DimensionOrientations.VerticalDimensionOrientation,
+                                                     textPoint3D)
+        # centorPoint.isFixed = True
 
         #トロコイド平行曲線の描画
         splinePoints = adsk.core.ObjectCollection.create()
-        for (xp,yp) in trochoidParallelPoints:
-            splinePoints.add(adsk.core.Point3D.create(xp, yp, z))
+        for (x,y) in trochoidParallelPoints:
+            splinePoints.add(adsk.core.Point3D.create(x, y, z))
         trochoidCurve = sketch.sketchCurves.sketchFittedSplines.add(splinePoints)
         trochoidCurve.isClosed = True
         trochoidCurve.isFixed  = True
@@ -339,20 +348,45 @@ class DrawCycloReducer():
         p = adsk.core.Point3D.create(trochoidalGearCentor[0], trochoidalGearCentor[1], z)
         sketch.sketchCurves.sketchCircles.addByCenterRadius(p, hd/2.0)
 
-    def createRingPin(self, sketch, drawingParam):
+    def distanceDimentionEasy(self, sketch, sketchPoint1, sketchPoint2):
         z=0
-        #外ピン配置円の中心点の描画
-        (points, radius) = self.cycoroidDecelerator.getOutpinPoints()
-        dotPoint = adsk.core.Point3D.create(0, 0, z)
-        sketch.sketchPoints.add(dotPoint)
+        textPoint3D = adsk.core.Point3D.create((sketchPoint1.geometry.x+sketchPoint2.geometry.x)/2,
+                                               (sketchPoint1.geometry.y+sketchPoint2.geometry.y)/2, z)
+        sketch.sketchDimensions.addDistanceDimension(sketchPoint1, sketchPoint2,
+                                                     adsk.fusion.DimensionOrientations.HorizontalDimensionOrientation,
+                                                     textPoint3D)
+        sketch.sketchDimensions.addDistanceDimension(sketchPoint1,sketchPoint2,
+                                                     adsk.fusion.DimensionOrientations.VerticalDimensionOrientation,
+                                                     textPoint3D)
+    def diameterDimentionEasy(self, sketch, circle):
+        z=0
+        r = circle.radius
+        textPoint3D = adsk.core.Point3D.create(circle.centerSketchPoint.geometry.x+r/2, circle.centerSketchPoint.geometry.y+r/2, z)
+        sketch.sketchDimensions.addDiameterDimension(circle, textPoint3D)
 
-        #外ピンの円を描画
-        for p in points:
-            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(p[0], p[1], z), radius)
+    def createRingGear(self, sketch, drawingParam):
+        sketchOriginPoint = sketch.originPoint
+        comp = sketch.parentComponent
+        z=0
+        (points, radius) = self.cycoroidDecelerator.getOutpinPoints()
+        # #外ピン配置円の中心点の描画
+        # dotPoint = adsk.core.Point3D.create(0, 0, z)
+        # sketch.sketchPoints.add(dotPoint)
+
+        #一歯目のRingGearを作成
+        firstThoothXY = points[0]
+        firstThoothCircle = sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(firstThoothXY[0], firstThoothXY[1], z), radius)
+        self.distanceDimentionEasy(sketch, sketchOriginPoint, firstThoothCircle.centerSketchPoint)#中心位置の拘束
+        self.diameterDimentionEasy(sketch, firstThoothCircle)#直径の拘束
+
+        # 外ピンの円を描画
+        for p in points[1:]:
+            circle = sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(p[0], p[1], z), radius)
+            sketch.geometricConstraints.addEqual(firstThoothCircle, circle) #直径の拘束
+
 
     def createOutputDisk(self, sketch, drawingParam):
         z=0
-
         #外ピン配置円の中心点の描画
         (points, radius) = self.cycoroidDecelerator.getOutpinPoints()
 
