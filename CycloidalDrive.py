@@ -229,41 +229,17 @@ class DrawCycloReducer():
         compReducer = occTrochoidalGear.component
         compReducer.name = "Cycloidal reducer"
 
-        # rgpn  = drawingParam.ringPinNum
-        # rgpr  = drawingParam.ringPinDia/2.0
-        # rgppr = drawingParam.ringPinPitchDia/2.0
-        # e     = drawingParam.eccentricAmount
-        # pdn   = drawingParam.plotDotNum
         self.cycoroidDecelerator = CycloidalReducer(int(drawingParam.ringPinNum), drawingParam.ringPinDia/2.0,
                                                     drawingParam.ringPinPitchDia/2.0,  drawingParam.eccentricAmount)
-
-        #component
-        # occTrochoidalGear = compReducer.occurrences.addNewComponent(adsk.core.Matrix3D.create())
-        # compTrochoidalGear = occTrochoidalGear.component
-        # compTrochoidalGear.name = "Cycloidal gear"
-        # occRingPin = compReducer.occurrences.addNewComponent(adsk.core.Matrix3D.create())
-        # compRingPin = occRingPin.component
-        # compRingPin.name = "Ring pins"
-        # if drawingParam.isDrawOutputDiskPin:
-        #     occOutputDisk = compReducer.occurrences.addNewComponent(adsk.core.Matrix3D.create())
-        #     compOutputDisk = occOutputDisk.component
-        #     compOutputDisk.name = "Output disk"
 
         #sketch
         trochoidSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
         trochoidSketch.name = "Trochoidal gear"+"(rr:"+str(drawingParam.ringPinNum-1)+" ea:"+str(drawingParam.eccentricAmount)+")"
-        # if drawingParam.isDrawCentorHole:
-        #     centorHoleSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
-        #     centorHoleSketch.name = "centor hole"
-        # if drawingParam.isDrawAroundHole:
-        #     aroundHoleSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
-        #     aroundHoleSketch.name = "around hole"
         ringPinSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
         ringPinSketch.name = "Ring pins"+"(rpd:"+str(drawingParam.ringPinDia)+" rppd:"+str(drawingParam.ringPinDia)+")"
         if drawingParam.isDrawOutputDiskPin:
             outputDiskSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
             outputDiskSketch.name = "Output disk"
-
 
         #スケッチの中身を作成
         self.createTrochoidalGear(trochoidSketch, drawingParam)
@@ -294,14 +270,15 @@ class DrawCycloReducer():
         trochoidCurve.isFixed  = True
 
         #トロコイド曲線の描画
-        # (trochoidPoints, trochoidalGearCentor) = self.cycoroidDecelerator.getTrochoidPoints(drawingParam.plotDotNum, True)
-        # splinePoints2 = adsk.core.ObjectCollection.create()
-        # for (xa,ya) in trochoidPoints:
-        #     splinePoints2.add(adsk.core.Point3D.create(xa, ya, z))
-        # trochoidCurve2 = sketch.sketchCurves.sketchFittedSplines.add(splinePoints2)
-        # trochoidCurve2.isClosed = True
-        # trochoidCurve2.isFixed  = True
-        # trochoidCurve2.isConstruction = True
+        if False:
+            (trochoidPoints, trochoidalGearCentor) = self.cycoroidDecelerator.getTrochoidPoints(drawingParam.plotDotNum, True)
+            splinePoints2 = adsk.core.ObjectCollection.create()
+            for (xa,ya) in trochoidPoints:
+                splinePoints2.add(adsk.core.Point3D.create(xa, ya, z))
+            trochoidCurve2 = sketch.sketchCurves.sketchFittedSplines.add(splinePoints2)
+            trochoidCurve2.isClosed = True
+            trochoidCurve2.isFixed  = True
+            trochoidCurve2.isConstruction = True
 
     def createTrochoidalGearAroundHole(self, sketch, drawingParam):
         sketchOriginPoint = sketch.originPoint
@@ -455,11 +432,9 @@ def inputsToParameter(commandInputs):
     drawingParam = namedtuple("DrawingParam",
                             ("ringPinNum", "ringPinDia", "ringPinPitchDia",
                                 "eccentricAmount", "plotDotNum",
-
                                 "troGearAroundHoleNum", "troGearAroundHoleDia", "troGearAroundHolePosDia",
                                 "troGearCentorHoleDia",
                                 "outDiskPinNum", "outDiskPinDia","outDiskPinPosDia"
-
                                 "isDrawTrochoidalGear", "isDrawRingPin","isDrawCentorHole", "isDrawAroundHole","isDrawOutputDiskPin"
                                 "isSeparateSketch", "isSeparateComponent"
                                 ))
@@ -511,12 +486,10 @@ def inputsToParameter(commandInputs):
     return drawingParam
 
 def settingComandInputsItem(inputs):
-    # pCommand.setDialogMinimumSize(500,1)
     #item
       #all tab
     testViewInputs = inputs.addBoolValueInput(ID_TV, "Test view", False, "", False)
     testViewInputs.isFullWidth = True
-    # a.isFullWidth=True
       #necessary tab
     necessaryTabInput = inputs.addTabCommandInput(ID_NECESSARY_TAB, "Necessary param")
     necessaryTabChildInputs = necessaryTabInput.children
@@ -555,7 +528,6 @@ def settingComandInputsItem(inputs):
     trochoidToOutputInputs.addIntegerSpinnerCommandInput(ID_OPT_CHOTGOD_ON, "Pin num", 2, 99999, 1, 8)
     trochoidToOutputInputs.addValueInput(ID_OPT_CHOTGOD_OD,  "Pin diameter",            "mm", adsk.core.ValueInput.createByReal(0.8))
     trochoidToOutputInputs.addValueInput(ID_OPT_CHOTGOD_OPD, "Centor to pin distance",  "mm", adsk.core.ValueInput.createByReal(4.2))
-
         #both mode item
     # optionTabChildInputs.addTextBoxCommandInput(ID_P_ET, "error text", "", 3, True)
       #draw tab
@@ -584,9 +556,6 @@ class MyCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             cmd = args.command
 
             cmd.setDialogInitialSize(300,500)
-
-            # r = cmd.setDialogInitialSize(5000,5000)
-            # ui.messageBox(str(r))
 
             # 値を取り出して使用するイベント
             onExecute = MyCommandExecuteHandler()
@@ -629,7 +598,6 @@ class MyCommandValidateInputsHandler(adsk.core.ValidateInputsEventHandler):
             inputs = cmd.commandInputs
             param  = inputsToParameter(inputs)
 
-            # cmd.setDialogInitialSize(300,500)
             # cmd.setDialogMinimumSize(500,500)
 
             if param.eccentricAmount <=0:
@@ -735,7 +703,6 @@ class MyExecutePreviewHandler(adsk.core.CommandEventHandler):
             testView = inputs.itemById(ID_TV)
             if testView.value:
                 testView.value = False
-                # create(inputs)
                 DrawCycloReducer(inputs)
         except:    #定型エラー処理文
             if ui:
@@ -753,7 +720,6 @@ class MyCommandExecuteHandler(adsk.core.CommandEventHandler):
 
             command = args.firingEvent.sender
             inputs = command.commandInputs
-            # create(inputs)
             DrawCycloReducer(inputs)
 
         except:    #定型エラー処理文
@@ -784,8 +750,6 @@ def run(context):
         # ユーザーインターフェースを取得
         global ui
         ui = app.userInterface
-
-        # ui.messageBox("hoge")
 
         unitsMgr = app.activeProduct.unitsManager
 
