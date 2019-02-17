@@ -583,16 +583,8 @@ class MyCommandValidateInputsHandler(adsk.core.ValidateInputsEventHandler):
             inputs = cmd.commandInputs
             param  = inputsToParameter(inputs)
 
-            # cmd.setDialogMinimumSize(500,500)
-
-            if param.eccentricAmount <=0:
-                args.areInputsValid = False
-            if param.ringPinPitchDia <=0:
-                args.areInputsValid = False
-            if param.ringPinDia <=0:
-                args.areInputsValid = False
-            #rm>=rd
-            if param.eccentricAmount >= (param.ringPinPitchDia/2.0)/(param.ringPinNum):
+            if (param.eccentricAmount <=0) or (param.ringPinPitchDia <=0) or (param.ringPinDia <=0) \
+                    or (param.eccentricAmount >= (param.ringPinPitchDia/2.0)/(param.ringPinNum)):
                 args.areInputsValid = False
 
             if param.isDrawCentorHole is True:
