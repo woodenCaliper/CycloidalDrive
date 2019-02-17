@@ -488,7 +488,8 @@ def settingComandInputsItem(inputs):
         #necessary tab item
     necImageInputs = necessaryTabChildInputs.addImageCommandInput(ID_NES_IMG, "", "image/cyclo_nec.png")
     necImageInputs.isFullWidth = True
-    necessaryTabChildInputs.addIntegerSpinnerCommandInput(ID_NES_RR, 'Raducation ratio', 2, 99999, 1, 10)
+    reducationRatioInput = necessaryTabChildInputs.addIntegerSpinnerCommandInput(ID_NES_RR, 'Raducation ratio', 2, 99999, 1, 10)
+    reducationRatioInput.tooltip = "ReducationRatio = RingPinNum-1 = cycloidalGear's thooth num"
     necessaryTabChildInputs.addValueInput(ID_NES_EA,   "Eccentric amount",        "mm", adsk.core.ValueInput.createByReal(0.2))
     necessaryTabChildInputs.addValueInput(ID_NES_RGPD, 'Ring pin diameter',       'mm', adsk.core.ValueInput.createByReal(1.0))
     necessaryTabChildInputs.addValueInput(ID_NES_RGPPD,'Ring pin pitch diameter', 'mm', adsk.core.ValueInput.createByReal(8.0))
