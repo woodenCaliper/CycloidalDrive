@@ -227,7 +227,7 @@ class DrawCycloReducer():
         #部品の親となるコンポーネント
         occTrochoidalGear = activeComp.occurrences.addNewComponent(adsk.core.Matrix3D.create())
         compReducer = occTrochoidalGear.component
-        compReducer.name = "cycloidal reducer"
+        compReducer.name = "Cycloidal reducer"
 
         # rgpn  = drawingParam.ringPinNum
         # rgpr  = drawingParam.ringPinDia/2.0
@@ -238,20 +238,20 @@ class DrawCycloReducer():
                                                     drawingParam.ringPinPitchDia/2.0,  drawingParam.eccentricAmount)
 
         #component
-        occTrochoidalGear = compReducer.occurrences.addNewComponent(adsk.core.Matrix3D.create())
-        compTrochoidalGear = occTrochoidalGear.component
-        compTrochoidalGear.name = "Cycloidal gear"
-        occRingPin = compReducer.occurrences.addNewComponent(adsk.core.Matrix3D.create())
-        compRingPin = occRingPin.component
-        compRingPin.name = "Ring pins"
-        if drawingParam.isDrawOutputDiskPin:
-            occOutputDisk = compReducer.occurrences.addNewComponent(adsk.core.Matrix3D.create())
-            compOutputDisk = occOutputDisk.component
-            compOutputDisk.name = "Output disk"
+        # occTrochoidalGear = compReducer.occurrences.addNewComponent(adsk.core.Matrix3D.create())
+        # compTrochoidalGear = occTrochoidalGear.component
+        # compTrochoidalGear.name = "Cycloidal gear"
+        # occRingPin = compReducer.occurrences.addNewComponent(adsk.core.Matrix3D.create())
+        # compRingPin = occRingPin.component
+        # compRingPin.name = "Ring pins"
+        # if drawingParam.isDrawOutputDiskPin:
+        #     occOutputDisk = compReducer.occurrences.addNewComponent(adsk.core.Matrix3D.create())
+        #     compOutputDisk = occOutputDisk.component
+        #     compOutputDisk.name = "Output disk"
 
         #sketch
         trochoidSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
-        trochoidSketch.name = "Trochoid"+"(rr:"+str(drawingParam.ringPinNum-1)+" ea:"+str(drawingParam.eccentricAmount)+")"
+        trochoidSketch.name = "Trochoidal gear"+"(rr:"+str(drawingParam.ringPinNum-1)+" ea:"+str(drawingParam.eccentricAmount)+")"
         # if drawingParam.isDrawCentorHole:
         #     centorHoleSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
         #     centorHoleSketch.name = "centor hole"
