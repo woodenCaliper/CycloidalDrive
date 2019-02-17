@@ -301,12 +301,12 @@ class DrawCycloReducer():
         for i in range(n)[1:]:
             theta = (float(i)/n)*2*math.pi
             circle = sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(fx(theta), fy(theta), z), r)
-            sketch.geometricConstraints.addEqual(firstCircle, circle) #直径の拘束
+            sketch.geometricConstraints.addEqual(firstCircle, circle) #直径をイコール拘束
             line = sketch.sketchCurves.sketchLines.addByTwoPoints(trochoidCentorPoint2D, circle.centerSketchPoint)
-            line.isConstruction=True
-            sketch.geometricConstraints.addEqual(firstLine, line)
+            line.isConstruction=True #構造線化
+            sketch.geometricConstraints.addEqual(firstLine, line) #長さをイコール高速
 
-            angleDim = self.angleDimentionEasy(sketch, beforeLine, line)
+            angleDim = self.angleDimentionEasy(sketch, beforeLine, line)#角度を拘束
             if beforeAngleDim:
                 angleDim.parameter.expression = beforeAngleDim.parameter.name#参照寸法で連動させる
 
@@ -551,7 +551,7 @@ class MyCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             # 妥当性検証イベント（バリデーション）
             onValidateInputs = MyCommandValidateInputsHandler()
             cmd.validateInputs.add(onValidateInputs)
-
+            #パラメータ変更時に描画するやつ
             onExecutePreview = MyExecutePreviewHandler()
             cmd.executePreview.add(onExecutePreview)
 
