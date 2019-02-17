@@ -7,13 +7,11 @@ COMMAND_ID = "trochoid_decelerator"
   #Tab
 ID_NECESSARY_TAB = "necessary_tab_"
 ID_OPTIONAL_TAB  = "optional_tab_"
-ID_DRAW_TAB      = "drawing_tab_"
   #Mode
 
   #Group
 ID_OPT_CH_GROUP    = ID_OPTIONAL_TAB + "centor_hole_group_"
 ID_OPT_TGTOD_GROUP = ID_OPTIONAL_TAB + "trochoidal_gear_to_output_disk_group_"
-ID_DR_SE_GROUP     = ID_DRAW_TAB + "separate_group_"
 
   #item
     #all tab
@@ -40,9 +38,6 @@ ID_OPT_CHOTGOD_APD = ID_OPT_TGTOD_GROUP + "around_hole_position_diameter"
 ID_OPT_CHOTGOD_ON  = ID_OPT_TGTOD_GROUP + "output_disk_num"
 ID_OPT_CHOTGOD_OD  = ID_OPT_TGTOD_GROUP + "output_disk_diameter"
 ID_OPT_CHOTGOD_OPD = ID_OPT_TGTOD_GROUP + "output_disk_position_diameter"
-    #drawing tab
-ID_DR_SE_S = ID_DR_SE_GROUP + "sketch"
-ID_DR_SE_C = ID_DR_SE_GROUP + "component"
 
 
 
@@ -461,12 +456,9 @@ def inputsToParameter(commandInputs):
                                 "outDiskPinNum", "outDiskPinDia","outDiskPinPosDia"
 
                                 "isDrawTrochoidalGear", "isDrawRingPin","isDrawCentorHole", "isDrawAroundHole","isDrawOutputDiskPin"
-                                "isSeparateSketch", "isSeparateComponent"
                                 ))
 
     unitsMgr = app.activeProduct.unitsManager
-    drawingParam.isSeparateSketch    = commandInputs.itemById(ID_DR_SE_S).value
-    drawingParam.isSeparateComponent = commandInputs.itemById(ID_DR_SE_C).value
 
     drawingParam.isDrawTrochoidalGear = True
     drawingParam.isDrawRingPin      = True
@@ -559,14 +551,7 @@ def settingComandInputsItem(inputs):
         #both mode item
     # optionTabChildInputs.addTextBoxCommandInput(ID_P_ET, "error text", "", 3, True)
       #draw tab
-    drawTabInput = inputs.addTabCommandInput(ID_DRAW_TAB, "Detailed setting")
-    drawTabChildInputs = drawTabInput.children
-        #separate group
-    drawSeparateGroup      = drawTabChildInputs.addGroupCommandInput(ID_DR_SE_GROUP,   "Separate")
-    drawSeparateInputs      = drawSeparateGroup.children
-          #separate group item
-    drawSeparateInputs.addBoolValueInput(ID_DR_SE_S, "sketch", True, "", True)
-    drawSeparateInputs.addBoolValueInput(ID_DR_SE_C, "component", True, "", True)
+
 
 # コマンド間の参照を維持するための、イベントハンドラのグローバル設定
 handlers = []
@@ -675,12 +660,6 @@ class MyCommandValidateInputsHandler(adsk.core.ValidateInputsEventHandler):
 
             eccentricAmountInput = inputs.itemById(ID_NES_EA)
             eccentricAmountCm = unitsMgr.evaluateExpression(eccentricAmountInput.expression)
-
-            sepatateSketchInput = inputs.itemById(ID_DR_SE_S)
-            sepatateComponentInput = inputs.itemById(ID_DR_SE_C)
-
-            if sepatateComponentInput.value is True:
-                sepatateSketchInput.value = True
 
             if (drawAroundHoleInput.value is False) and (drawOutputPinInput.value is False):
                 trochoidOrOutputInput.isEnabled = False
