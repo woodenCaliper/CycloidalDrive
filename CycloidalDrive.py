@@ -495,7 +495,7 @@ def settingComandInputsItem(inputs):
     necessaryTabChildInputs.addValueInput(ID_NES_RGPPD,'Ring pin pitch diameter', 'mm', adsk.core.ValueInput.createByReal(8.0))
     necessaryTabChildInputs.addIntegerSpinnerCommandInput(ID_NES_CGPN, "Cycloidal curve plot num par thooth", 2, 99999, 1, 6)
       #optionary tab
-    optionTabInput = inputs.addTabCommandInput(ID_OPTIONAL_TAB, "optionary param")
+    optionTabInput = inputs.addTabCommandInput(ID_OPTIONAL_TAB, "Optionary param")
     optionTabChildInputs = optionTabInput.children
         #optionary item
     optImageInputs = optionTabChildInputs.addImageCommandInput(ID_OPT_IMG, "", "image/cyclo_opt.png")
