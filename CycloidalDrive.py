@@ -118,6 +118,12 @@ class CycloidalReducer():
     # @brief \f$ \frac{df_{ya}(p)}{dp} \f$
     def dfya(self, p):
         return (self.rc+self.rm)*math.cos(p) - ((self.rc+self.rm)/self.rm)*self.rd*math.cos((self.rc+self.rm)/self.rm*p)
+    ## x of 2differential trochoid curve
+    def ddfxa(self, p):
+        return -(self.rc+self.rm)*math.cos(p) + ((self.rc+self.rm)/self.rm)**2 * self.rd*math.cos((self.rc+self.rm)/self.rm*p)
+    ## y of 2differential trochoid curve
+    def ddfya(self, p):
+        return -(self.rc+self.rm)*math.sin(p) + ((self.rc+self.rm)/self.rm)**2 * self.rd*math.sin((self.rc+self.rm)/self.rm*p)
     ## x of trochoidal parallel curve
     # @brief \f$ f_{xp}(p) \f$
     def fxp(self, p):
