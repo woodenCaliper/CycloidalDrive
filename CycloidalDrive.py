@@ -139,21 +139,23 @@ class CycloidalReducer():
     ## x of differential trochoidal parallel curve
     # @brief \f$ \frac{df_{xp}(p)}{dp} \f$
     def dfxp(self, p):
-        rt = (self.rc/self.rm+1)*p
-        q = self.rd**2 -2*self.rd*self.rm*math.cos(self.rc/self.rm*p) + self.rm**2
-        a = (self.d/(math.sqrt(q))-1) * ((-self.rd*(self.rc + self.rm)/self.rm)*math.sin(p*(self.rc + self.rm)/self.rm) + self.rm*math.sin(p))
-        b = ( self.d*self.rc*self.rd*math.sin(self.rc*p/self.rm)*(-self.rd*math.cos(p*(self.rc + self.rm)/self.rm) + self.rm*math.cos(p))/(q**(3/2)) )
-        c = -self.rc*math.sin(p)
-        return a+b+c
+        dxa = self.dfxa(p)
+        dya = self.dfya(p)
+        ddxa = self.ddfxa(p)
+        ddya = self.ddfya(p)
+        D=self.d
+        return dxa * (1 + D*(-dxa*ddya + dya*ddxa)/(dxa**2+dya**2)**(3/2) )
+
     ## y of differential trochoidal parallel curve
     # @brief \f$ \frac{df_{yp}(p)}{dp} \f$
     def dfyp(self, p):
-        rt = (self.rc/self.rm+1)*p
-        q = self.rd**2 -2*self.rd*self.rm*math.cos(self.rc/self.rm*p) + self.rm**2
-        a = (self.d/(math.sqrt(q))-1) * (( self.rd*(self.rc + self.rm)/self.rm)*math.cos(p*(self.rc + self.rm)/self.rm) - self.rm*math.cos(p))
-        b = - ( self.d*self.rc*self.rd*math.sin(self.rc*p/self.rm)*( self.rd*math.sin(p*(self.rc + self.rm)/self.rm) - self.rm*math.sin(p))/(q**(3/2)) )
-        c = + self.rc*math.cos(p)
-        return a+b+c
+        dxa = self.dfxa(p)
+        dya = self.dfya(p)
+        ddxa = self.ddfxa(p)
+        ddya = self.ddfya(p)
+        D=self.d
+        return dya * (1 + D*(dya*ddxa - dxa*ddya)/(dxa**2+dya**2)**(3/2) )
+
     ## 周長を求める
     def getPerimeter(self, upper, lower, splitNum=1000):
         dfl = lambda p: math.sqrt(self.dfxp(p)**2 + self.dfyp(p)**2) #周長の微分
