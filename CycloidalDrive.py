@@ -165,6 +165,10 @@ class CycloidalReducer():
         f=lambda p: self.getPerimeter(p, currentP, 100)-distance
         return bisectionMethod(f, upperP, currentP, self.pointError)
 
+    def getPresserAngle(self, p):
+        a = math.atan2(self.dfya(p),self.dfxa(p)) - math.atan2(self.fya(p),self.fxa(p))
+        return a# if a>=0 else a+2*math.pi
+
     ## トロコイド曲線の点をプロット
     # @return (list of [x,y], centor)
     def getTrochoidPoints(self, pointNum, shift=False):
