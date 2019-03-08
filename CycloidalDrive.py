@@ -218,19 +218,27 @@ class CycloidalReducer():
 
     ## 圧力角の微分
     def dfa(self, p):
-        xa   = self.fxa(p)
-        dxa  = self.dfxa(p)
-        ddxa = self.ddfxa(p)
-        ya   = self.fya(p)
-        dya  = self.dfya(p)
-        ddya = self.ddfya(p)
+        xa,   ya   = self.fxa(p),   self.fya(p)
+        dxa,  dya  = self.dfxa(p),  self.dfya(p)
+        ddxa, ddya = self.ddfxa(p), self.ddfya(p)
         return (dxa*ddya - ddxa*dya)/(dxa**2+dya**2) - (xa*dya - dxa*ya)/(xa**2+ya**2)
+
+    def fap(self, p):
+        a = math.atan2(self.dfyp(p),self.dfxp(p)) - math.atan2(self.fyp(p),self.fxp(p))
+        return a #if a>=0 else a+2*math.pi
+
+    ## 圧力角の微分
+    def dfap(self, p):
+        xp, yp  = self.fxp(p), self.fyp(p)
+        dxp, dyp  = self.dfxp(p), self.dfyp(p)
+        ddxp, ddyp = self.ddfxp(p), self.ddfyp(p)
+        return (dxp*ddyp - ddxp*dyp)/(dxp**2+dyp**2) - (xp*dyp - dxp*yp)/(xp**2+yp**2)
 
     def getMinimumPresserAngle(self):
         lastPOneThooth = 2*math.pi/self.trochoidalGearThoothNum
         maxError=0.00001
-        minP = numericalAnalysis(self.dfa, lastPOneThooth/4.0, 0.00001)
-        minAngle = self.fa(minP)
+        minP = numericalAnalysis(self.dfap, lastPOneThooth/4.0, 0.00001)
+        minAngle = self.fap(minP)
         return minAngle if minAngle<=math.pi/2.0 else math.pi-minAngle
 
     ## トロコイド曲線の点をプロット
