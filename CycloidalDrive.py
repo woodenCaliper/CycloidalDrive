@@ -189,16 +189,27 @@ class CycloidalReducer():
         f=lambda p: self.getPerimeter(p, currentP, 100)-distance
         return bisectionMethod(f, upperP, currentP, self.pointError)
 
-    def getPresserAngle(self, p):
+    ## 圧力角
+    def fa(self, p):
         a = math.atan2(self.dfya(p),self.dfxa(p)) - math.atan2(self.fya(p),self.fxa(p))
-        return a# if a>=0 else a+2*math.pi
+        return a #if a>=0 else a+2*math.pi
+
+    ## 圧力角の微分
+    def dfa(self, p):
+        xa   = self.fxa(p)
+        dxa  = self.dfxa(p)
+        ddxa = self.ddfxa(p)
+        ya   = self.fya(p)
+        dya  = self.dfya(p)
+        ddya = self.ddfya(p)
+        return (dxa*ddya - ddxa*dya)/(dxa**2+dya**2) - (xa*dya - dxa*ya)/(xa**2+ya**2)
 
     def getMinimumPresserAngle(self):
         lastPOneThooth = 2*math.pi/self.trochoidalGearThoothNum
         maxError=0.00001
-        minP = searchMin(self.getPresserAngle, 0, lastPOneThooth/2.0, maxError)
-        ui.messageBox(str(minP*180/math.pi)+"\n"+str(self.trochoidalGearThoothNum)+"\n"+str(lastPOneThooth*180/math.pi/2.0))
-        return self.getPresserAngle(minP)
+        minP = numericalAnalysis(self.dfa, lastPOneThooth/4.0, 0.00001)
+        minAngle = self.fa(minP)
+        return minAngle if minAngle<=math.pi/2.0 else math.pi-minAngle
 
     ## トロコイド曲線の点をプロット
     # @return (list of [x,y], centor)
