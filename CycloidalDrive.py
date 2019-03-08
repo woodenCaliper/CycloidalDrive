@@ -82,6 +82,29 @@ def bisectionMethod(func, upper, lower, maxError, maxCalcTimes=100):
             return x
 
 ##
+# @brief func(x)=0のxを数値解法によって求める
+# @detail ニュートン法と中心差分近似微分を使用
+# @param func =0の関数
+# @param initialValue ニュートン法の初期値
+# @param maxError 解xの許容誤差
+# @param maxCalcTimes 最大試行回数
+# @return x
+def numericalAnalysis(func, initialValue, maxError, maxCalcTimes=100):
+    maxError = abs(maxError)
+    calcTimes=0
+    x = initialValue
+    dfx = lambda x: (func(x*1.000001)-func(x*0.999999)) / (x*0.000002)
+    while True:
+        calcTimes+=1
+        xn = x-func(x)/dfx(x)
+        if abs(xn-x)<=maxError:
+            return xn
+        elif calcTimes==maxCalcTimes:
+            # ui.messageBox("error")
+            return xn
+        x = xn
+
+##
 # @brief サイクロ減速機の部品の値を取得するクラス
 class CycloidalReducer():
     ##
