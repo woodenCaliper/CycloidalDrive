@@ -25,6 +25,7 @@ ID_NES_EA    = ID_NECESSARY_TAB + "eccentric_amount_"
 ID_NES_RGPD  = ID_NECESSARY_TAB + "ring_gear_pin_diameter_"
 ID_NES_RGPPD = ID_NECESSARY_TAB + "ring_gear_pin_pitch_diameter_"
 ID_NES_CGPN  = ID_NECESSARY_TAB + "trochoidal_gear_plot_num_"
+ID_NES_MPA   = ID_NECESSARY_TAB + "minimum_presser_angle"
     #optional tab
 ID_OPT_IMG    = ID_OPTIONAL_TAB + "description_image"
 ID_OPT_CGH_DR = ID_OPT_CH_GROUP + "draw_centor_hole"
@@ -168,6 +169,13 @@ class CycloidalReducer():
     def getPresserAngle(self, p):
         a = math.atan2(self.dfya(p),self.dfxa(p)) - math.atan2(self.fya(p),self.fxa(p))
         return a# if a>=0 else a+2*math.pi
+
+    def getMinimumPresserAngle(self):
+        lastPOneThooth = 2*math.pi/self.trochoidalGearThoothNum
+        maxError=0.00001
+        minP = searchMin(self.getPresserAngle, 0, lastPOneThooth/2.0, maxError)
+        ui.messageBox(str(minP*180/math.pi)+"\n"+str(self.trochoidalGearThoothNum)+"\n"+str(lastPOneThooth*180/math.pi/2.0))
+        return self.getPresserAngle(minP)
 
     ## トロコイド曲線の点をプロット
     # @return (list of [x,y], centor)
@@ -506,6 +514,7 @@ def settingComandInputsItem(inputs):
     necessaryTabChildInputs.addValueInput(ID_NES_RGPD, 'Ring pin diameter',       'mm', adsk.core.ValueInput.createByReal(1.0))
     necessaryTabChildInputs.addValueInput(ID_NES_RGPPD,'Ring pin pitch diameter', 'mm', adsk.core.ValueInput.createByReal(8.0))
     necessaryTabChildInputs.addIntegerSpinnerCommandInput(ID_NES_CGPN, "Cycloidal curve plot num par thooth", 2, 99999, 1, 6)
+    necessaryTabChildInputs.addTextBoxCommandInput(ID_NES_MPA, "minimum presser angle", "-", 1, True)
       #optionary tab
     optionTabInput = inputs.addTabCommandInput(ID_OPTIONAL_TAB, "Optionary param")
     optionTabChildInputs = optionTabInput.children
@@ -684,6 +693,14 @@ class MyExecutePreviewHandler(adsk.core.CommandEventHandler):
         try:
             command = args.firingEvent.sender
             inputs = command.commandInputs
+
+            presserAngleInput = inputs.itemById(ID_NES_MPA)
+            drawingParam = inputsToParameter(inputs)
+            cycoroidDecelerator = CycloidalReducer(int(drawingParam.ringPinNum), drawingParam.ringPinDia/2.0,
+                                                    drawingParam.ringPinPitchDia/2.0,  drawingParam.eccentricAmount)
+            presserAngle = cycoroidDecelerator.getMinimumPresserAngle()*180/math.pi
+            presserAngleInput.text = str( round(presserAngle, 2))
+
             testView = inputs.itemById(ID_TV)
             if testView.value:
                 testView.value = False
