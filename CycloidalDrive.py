@@ -158,34 +158,49 @@ class CycloidalReducer():
     ## x of trochoidal parallel curve
     # @brief \f$ f_{xp}(p) \f$
     def fxp(self, p):
-        dxa = self.dfxa(p)
-        dya = self.dfya(p)
-        return self.fxa(p) + self.d*-dya / math.sqrt(dxa**2+dya**2)
+        dxa, dya = self.dfxa(p), self.dfya(p)
+        return self.fxa(p) - self.d*dya / math.sqrt(dxa**2+dya**2)
     ## y of trochoidal parallel curve
     # @brief \f$ f_{yp}(p) \f$
     def fyp(self, p):
-        dxa = self.dfxa(p)
-        dya = self.dfya(p)
+        dxa, dya = self.dfxa(p), self.dfya(p)
         return self.fya(p) + self.d*dxa / math.sqrt(dxa**2+dya**2)
     ## x of differential trochoidal parallel curve
     # @brief \f$ \frac{df_{xp}(p)}{dp} \f$
     def dfxp(self, p):
-        dxa = self.dfxa(p)
-        dya = self.dfya(p)
-        ddxa = self.ddfxa(p)
-        ddya = self.ddfya(p)
-        D=self.d
+        dxa,  dya  = self.dfxa(p),  self.dfya(p)
+        ddxa, ddya = self.ddfxa(p), self.ddfya(p)
+        D = self.d
         return dxa * (1 + D*(-dxa*ddya + dya*ddxa)/(dxa**2+dya**2)**(3/2) )
-
     ## y of differential trochoidal parallel curve
     # @brief \f$ \frac{df_{yp}(p)}{dp} \f$
     def dfyp(self, p):
-        dxa = self.dfxa(p)
-        dya = self.dfya(p)
-        ddxa = self.ddfxa(p)
-        ddya = self.ddfya(p)
-        D=self.d
+        dxa,  dya  = self.dfxa(p),  self.dfya(p)
+        ddxa, ddya = self.ddfxa(p), self.ddfya(p)
+        D    = self.d
         return dya * (1 + D*(dya*ddxa - dxa*ddya)/(dxa**2+dya**2)**(3/2) )
+
+    def ddfxp(self, p):
+        dxa,   dya   = self.dfxa(p),   self.dfya(p)
+        ddxa,  ddya  = self.ddfxa(p),  self.ddfya(p)
+        dddxa, dddya = self.dddfxa(p), self.dddfya(p)
+        D = self.d
+        w = dxa**2+dya**2
+        return ddxa   * 1 \
+               -dddya * D*w**-0.5 \
+               -ddya  * -2*D*(dxa*ddxa+dya*ddya)*w**-1.5 \
+               -dya   * -D*((ddxa**2 + dxa*dddxa + ddya**2 + dya*dddya)*w**-1.5 -3*(dxa*ddxa+dya*ddya)**2*w**-2.5)
+
+    def ddfyp(self, p):
+        dxa,   dya   = self.dfxa(p),   self.dfya(p)
+        ddxa,  ddya  = self.ddfxa(p),  self.ddfya(p)
+        dddxa, dddya = self.dddfxa(p), self.dddfya(p)
+        D = self.d
+        w = dxa**2+dya**2
+        return +ddya  * 1 \
+               +dddxa * D*w**-0.5 \
+               +ddxa  * -2*D*(dxa*ddxa+dya*ddya)*w**-1.5 \
+               +dxa   * -D*((ddxa**2 + dxa*dddxa + ddya**2 + dya*dddya)*w**-1.5 -3*(dxa*ddxa+dya*ddya)**2*w**-2.5)
 
     ## 周長を求める
     def getPerimeter(self, upper, lower, splitNum=1000):
