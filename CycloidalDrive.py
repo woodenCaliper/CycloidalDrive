@@ -25,7 +25,7 @@ ID_NES_EA    = ID_NECESSARY_TAB + "eccentric_amount_"
 ID_NES_RGPD  = ID_NECESSARY_TAB + "ring_gear_pin_diameter_"
 ID_NES_RGPPD = ID_NECESSARY_TAB + "ring_gear_pin_pitch_diameter_"
 ID_NES_CGPN  = ID_NECESSARY_TAB + "trochoidal_gear_plot_num_"
-ID_NES_MPA   = ID_NECESSARY_TAB + "minimum_presser_angle"
+ID_NES_MPA   = ID_NECESSARY_TAB + "minimum_Pressure_angle"
     #optional tab
 ID_OPT_IMG    = ID_OPTIONAL_TAB + "description_image"
 ID_OPT_CGH_DR = ID_OPT_CH_GROUP + "draw_centor_hole"
@@ -127,59 +127,77 @@ class CycloidalReducer():
         self.d  = self.ringPinRadius                                #オフセット量
 
     ## x of trochoid curve
-    # @brief \f$f_{xa}(p)\f$
+    # \f$f_{x_a}(p)\f$
+    # @param p parameter [rad]
     def fxa(self, p):
         return (self.rc+self.rm)*math.cos(p) - self.rd*math.cos((self.rc+self.rm)/self.rm*p)
     ## y of trochoid curve
-    # @brief \f$f_{ya}(p)\f$
+    # @brief \f$f_{y_a}(p)\f$
+    # @param p parameter [rad]
     def fya(self, p):
         return (self.rc+self.rm)*math.sin(p) - self.rd*math.sin((self.rc+self.rm)/self.rm*p)
     ## x of differential trochoid curve
-    # @brief \f$ \frac{df_{xa}(p)}{dp} \f$
+    # @brief \f$ \frac{dfx_a}{dp} \f$
+    # @param p parameter [rad]
     def dfxa(self, p):
         return -(self.rc+self.rm)*math.sin(p) + ((self.rc+self.rm)/self.rm)*self.rd*math.sin((self.rc+self.rm)/self.rm*p)
     ## y of differential trochoid curve
-    # @brief \f$ \frac{df_{ya}(p)}{dp} \f$
+    # @brief \f$ \frac{dfy_a}{dp} \f$
+    # @param p parameter [rad]
     def dfya(self, p):
         return (self.rc+self.rm)*math.cos(p) - ((self.rc+self.rm)/self.rm)*self.rd*math.cos((self.rc+self.rm)/self.rm*p)
-    ## x of 2differential trochoid curve
+    ## x of 2nd order differential trochoid curve
+    # @brief \f$ \frac{d^2fx_a}{dp^2} \f$
+    # @param p parameter [rad]
     def ddfxa(self, p):
         return -(self.rc+self.rm)*math.cos(p) + ((self.rc+self.rm)/self.rm)**2 * self.rd*math.cos((self.rc+self.rm)/self.rm*p)
-    ## y of 2differential trochoid curve
+    ## y of 2nd order differential trochoid curve
+    # @brief \f$ \frac{d^2fy_a}{dp^2} \f$
+    # @param p parameter [rad]
     def ddfya(self, p):
         return -(self.rc+self.rm)*math.sin(p) + ((self.rc+self.rm)/self.rm)**2 * self.rd*math.sin((self.rc+self.rm)/self.rm*p)
-    ## x of 3differential trochoid curve
+    ## x of 3rd order differential trochoid curve
+    # @brief \f$ \frac{d^3fx_a}{dp^3} \f$
+    # @param p parameter [rad]
     def dddfxa(self, p):
         return +(self.rc+self.rm)*math.sin(p) - ((self.rc+self.rm)/self.rm)**3 * self.rd*math.sin((self.rc+self.rm)/self.rm*p)
-    ## y of 3differential trochoid curve
+    ## y of 3rd order differential trochoid curve
+    # @brief \f$ \frac{d^3fy_a}{dp^3} \f$
+    # @param p parameter [rad]
     def dddfya(self, p):
         return -(self.rc+self.rm)*math.cos(p) + ((self.rc+self.rm)/self.rm)**3 * self.rd*math.cos((self.rc+self.rm)/self.rm*p)
 
     ## x of trochoidal parallel curve
-    # @brief \f$ f_{xp}(p) \f$
+    # @brief \f$f_{x_p}(p)\f$
+    # @param p parameter [rad]
     def fxp(self, p):
         dxa, dya = self.dfxa(p), self.dfya(p)
         return self.fxa(p) - self.d*dya / math.sqrt(dxa**2+dya**2)
     ## y of trochoidal parallel curve
-    # @brief \f$ f_{yp}(p) \f$
+    # @brief \f$f_{y_p}(p)\f$
+    # @param p parameter [rad]
     def fyp(self, p):
         dxa, dya = self.dfxa(p), self.dfya(p)
         return self.fya(p) + self.d*dxa / math.sqrt(dxa**2+dya**2)
     ## x of differential trochoidal parallel curve
-    # @brief \f$ \frac{df_{xp}(p)}{dp} \f$
+    # @brief \f$ \frac{dfx_a}{dp} \f$
+    # @param p parameter [rad]
     def dfxp(self, p):
         dxa,  dya  = self.dfxa(p),  self.dfya(p)
         ddxa, ddya = self.ddfxa(p), self.ddfya(p)
         D = self.d
         return dxa * (1 + D*(-dxa*ddya + dya*ddxa)/(dxa**2+dya**2)**(3/2) )
     ## y of differential trochoidal parallel curve
-    # @brief \f$ \frac{df_{yp}(p)}{dp} \f$
+    # @brief \f$ \frac{dfy_a}{dp} \f$
+    # @param p parameter [rad]
     def dfyp(self, p):
         dxa,  dya  = self.dfxa(p),  self.dfya(p)
         ddxa, ddya = self.ddfxa(p), self.ddfya(p)
         D    = self.d
         return dya * (1 + D*(dya*ddxa - dxa*ddya)/(dxa**2+dya**2)**(3/2) )
-
+    ## x of 2nd order differential trochoidal parallel curve
+    # @brief \f$ \frac{d^2fx_a}{dp^2} \f$
+    # @param p parameter [rad]
     def ddfxp(self, p):
         dxa,   dya   = self.dfxa(p),   self.dfya(p)
         ddxa,  ddya  = self.ddfxa(p),  self.ddfya(p)
@@ -190,7 +208,9 @@ class CycloidalReducer():
                -dddya * D*w**-0.5 \
                -ddya  * -2*D*(dxa*ddxa+dya*ddya)*w**-1.5 \
                -dya   * -D*((ddxa**2 + dxa*dddxa + ddya**2 + dya*dddya)*w**-1.5 -3*(dxa*ddxa+dya*ddya)**2*w**-2.5)
-
+    ## y of 2nd order differential trochoidal parallel curve
+    # @brief \f$ \frac{d^2fy_a}{dp^2} \f$
+    # @param p parameter [rad]
     def ddfyp(self, p):
         dxa,   dya   = self.dfxa(p),   self.dfya(p)
         ddxa,  ddya  = self.ddfxa(p),  self.ddfya(p)
@@ -202,44 +222,38 @@ class CycloidalReducer():
                +ddxa  * -2*D*(dxa*ddxa+dya*ddya)*w**-1.5 \
                +dxa   * -D*((ddxa**2 + dxa*dddxa + ddya**2 + dya*dddya)*w**-1.5 -3*(dxa*ddxa+dya*ddya)**2*w**-2.5)
 
-    ## 周長を求める
+    ## Pressure angle of trochoidal parallel curve
+    # @param p parameter [rad]
+    def fa(self, p):
+        a = math.atan2(self.dfyp(p),self.dfxp(p)) - math.atan2(self.fyp(p),self.fxp(p))
+        return a #if a>=0 else a+2*math.pi
+    ## Pressure angle of differential trochoidal parallel curve
+    # @param p parameter [rad]
+    def dfa(self, p):
+        xp, yp  = self.fxp(p), self.fyp(p)
+        dxp, dyp  = self.dfxp(p), self.dfyp(p)
+        ddxp, ddyp = self.ddfxp(p), self.ddfyp(p)
+        return (dxp*ddyp - ddxp*dyp)/(dxp**2+dyp**2) - (xp*dyp - dxp*yp)/(xp**2+yp**2)
+    ## Get minimum pressure angle
+    def getMinimumPressureAngle(self):
+        lastPOneThooth = 2*math.pi/self.trochoidalGearThoothNum
+        maxError=0.00001
+        minP = numericalAnalysis(self.dfa, lastPOneThooth/4.0, 0.00001)
+        minAngle = self.fa(minP)
+        return minAngle if minAngle<=math.pi/2.0 else math.pi-minAngle
+
+    ## 一定の範囲の周長の取得
+    # @param upper 範囲の上限[rad]
+    # @param lower 範囲の下限[rad]
+    # @param splitNum 合成シンプソン法による近似積分の分割数
     def getPerimeter(self, upper, lower, splitNum=1000):
         dfl = lambda p: math.sqrt(self.dfxp(p)**2 + self.dfyp(p)**2) #周長の微分
         return compositeSimpson(dfl, upper, lower, splitNum)
     ## とある点から周長を一定の距離分なぞった点を取得
     def getConstDistancePoint(self, currentP, distance, upperP):
-        f=lambda p: self.getPerimeter(p, currentP, 100)-distance
+        f = lambda p: self.getPerimeter(p, currentP, 100)-distance
+        # return numericalAnalysis(f,currentP, self.pointError)
         return bisectionMethod(f, upperP, currentP, self.pointError)
-
-    ## 圧力角
-    def fa(self, p):
-        a = math.atan2(self.dfya(p),self.dfxa(p)) - math.atan2(self.fya(p),self.fxa(p))
-        return a #if a>=0 else a+2*math.pi
-
-    ## 圧力角の微分
-    def dfa(self, p):
-        xa,   ya   = self.fxa(p),   self.fya(p)
-        dxa,  dya  = self.dfxa(p),  self.dfya(p)
-        ddxa, ddya = self.ddfxa(p), self.ddfya(p)
-        return (dxa*ddya - ddxa*dya)/(dxa**2+dya**2) - (xa*dya - dxa*ya)/(xa**2+ya**2)
-
-    def fap(self, p):
-        a = math.atan2(self.dfyp(p),self.dfxp(p)) - math.atan2(self.fyp(p),self.fxp(p))
-        return a #if a>=0 else a+2*math.pi
-
-    ## 圧力角の微分
-    def dfap(self, p):
-        xp, yp  = self.fxp(p), self.fyp(p)
-        dxp, dyp  = self.dfxp(p), self.dfyp(p)
-        ddxp, ddyp = self.ddfxp(p), self.ddfyp(p)
-        return (dxp*ddyp - ddxp*dyp)/(dxp**2+dyp**2) - (xp*dyp - dxp*yp)/(xp**2+yp**2)
-
-    def getMinimumPresserAngle(self):
-        lastPOneThooth = 2*math.pi/self.trochoidalGearThoothNum
-        maxError=0.00001
-        minP = numericalAnalysis(self.dfap, lastPOneThooth/4.0, 0.00001)
-        minAngle = self.fap(minP)
-        return minAngle if minAngle<=math.pi/2.0 else math.pi-minAngle
 
     ## トロコイド曲線の点をプロット
     # @return (list of [x,y], centor)
@@ -578,7 +592,7 @@ def settingComandInputsItem(inputs):
     necessaryTabChildInputs.addValueInput(ID_NES_RGPD, 'Ring pin diameter',       'mm', adsk.core.ValueInput.createByReal(1.0))
     necessaryTabChildInputs.addValueInput(ID_NES_RGPPD,'Ring pin pitch diameter', 'mm', adsk.core.ValueInput.createByReal(8.0))
     necessaryTabChildInputs.addIntegerSpinnerCommandInput(ID_NES_CGPN, "Cycloidal curve plot num par thooth", 2, 99999, 1, 6)
-    necessaryTabChildInputs.addTextBoxCommandInput(ID_NES_MPA, "minimum presser angle", "-", 1, True)
+    necessaryTabChildInputs.addTextBoxCommandInput(ID_NES_MPA, "minimum Pressure angle", "-", 1, True)
       #optionary tab
     optionTabInput = inputs.addTabCommandInput(ID_OPTIONAL_TAB, "Optionary param")
     optionTabChildInputs = optionTabInput.children
@@ -759,12 +773,12 @@ class MyExecutePreviewHandler(adsk.core.CommandEventHandler):
             command = args.firingEvent.sender
             inputs = command.commandInputs
 
-            presserAngleInput = inputs.itemById(ID_NES_MPA)
+            PressureAngleInput = inputs.itemById(ID_NES_MPA)
             drawingParam = inputsToParameter(inputs)
             cycoroidDecelerator = CycloidalReducer(int(drawingParam.ringPinNum), drawingParam.ringPinDia/2.0,
                                                     drawingParam.ringPinPitchDia/2.0,  drawingParam.eccentricAmount)
-            presserAngle = cycoroidDecelerator.getMinimumPresserAngle()*180/math.pi
-            presserAngleInput.text = str( round(presserAngle, 2))
+            PressureAngle = cycoroidDecelerator.getMinimumPressureAngle()*180/math.pi
+            PressureAngleInput.text = str( round(PressureAngle, 2))
 
             testView = inputs.itemById(ID_TV)
             if testView.value:
