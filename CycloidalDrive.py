@@ -238,7 +238,8 @@ class CycloidalReducer():
     def getMinimumPressureAngle(self):
         lastPOneThooth = 2*math.pi/self.trochoidalGearThoothNum
         maxError=0.00001
-        minP = numericalAnalysis(self.dfa, lastPOneThooth/4.0, 0.00001)
+        # minP = numericalAnalysis(self.dfa, lastPOneThooth/4.0, maxError)
+        minP = bisectionMethod(self.dfa, lastPOneThooth/2, 0, maxError)
         minAngle = self.fa(minP)
         return minAngle if minAngle<=math.pi/2.0 else math.pi-minAngle
 
@@ -326,10 +327,14 @@ class DrawCycloReducer():
                                                     drawingParam.ringPinPitchDia/2.0,  drawingParam.eccentricAmount)
 
         #sketch
+        rr   = round(drawingParam.ringPinNum-1,    2)
+        ea   = round(drawingParam.eccentricAmount, 2)
+        rpd  = round(drawingParam.ringPinDia,      2)
+        rppd = round(drawingParam.ringPinPitchDia, 2)
         trochoidSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
-        trochoidSketch.name = "Trochoidal gear"+"(rr:"+str(drawingParam.ringPinNum-1)+" ea:"+str(drawingParam.eccentricAmount)+")"
+        trochoidSketch.name = "Trochoidal gear"+"(rr:"+str(rr)+" ea:"+str(ea)+")"
         ringPinSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
-        ringPinSketch.name = "Ring pins"+"(rpd:"+str(drawingParam.ringPinDia)+" rppd:"+str(drawingParam.ringPinDia)+")"
+        ringPinSketch.name = "Ring pins"+"(rpd:"+str(rpd)+" rppd:"+str(rppd)+")"
         if drawingParam.isDrawOutputDiskPin:
             outputDiskSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
             outputDiskSketch.name = "Output disk"
