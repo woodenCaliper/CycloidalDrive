@@ -314,6 +314,7 @@ class DrawCycloReducer():
 
         app = adsk.core.Application.get()
         design = app.activeProduct
+        unitsMgr = app.activeProduct.unitsManager
 
         #アクティブなコンポーネント
         activeComp = design.activeOccurrence.component if design.activeOccurrence else  design.rootComponent
@@ -327,14 +328,18 @@ class DrawCycloReducer():
                                                     drawingParam.ringPinPitchDia/2.0,  drawingParam.eccentricAmount)
 
         #sketch
-        rr   = round(drawingParam.ringPinNum-1,    2)
-        ea   = round(drawingParam.eccentricAmount, 2)
-        rpd  = round(drawingParam.ringPinDia,      2)
-        rppd = round(drawingParam.ringPinPitchDia, 2)
+        #ユーザー定義の単位に変換と表示のための丸め
+        rr   = int(drawingParam.ringPinNum-1)
+        ea   = unitsMgr.convert(drawingParam.eccentricAmount, unitsMgr.internalUnits, unitsMgr.defaultLengthUnits)
+        rpd  = unitsMgr.convert(drawingParam.ringPinDia,      unitsMgr.internalUnits, unitsMgr.defaultLengthUnits)
+        rppd = unitsMgr.convert(drawingParam.ringPinPitchDia, unitsMgr.internalUnits, unitsMgr.defaultLengthUnits)
+        eaString   = "{:.3g}".format(ea)   + unitsMgr.defaultLengthUnits
+        rpdString  = "{:.3g}".format(rpd)  + unitsMgr.defaultLengthUnits
+        rppdString = "{:.3g}".format(rppd) + unitsMgr.defaultLengthUnits
         trochoidSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
-        trochoidSketch.name = "Trochoidal gear"+"(rr:"+str(rr)+" ea:"+str(ea)+")"
+        trochoidSketch.name = "Trochoidal gear"+"(rr:"+str(rr)+" ea:"+eaString+")"
         ringPinSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
-        ringPinSketch.name = "Ring pins"+"(rpd:"+str(rpd)+" rppd:"+str(rppd)+")"
+        ringPinSketch.name = "Ring pins"+"(rpd:"+rpdString+" rppd:"+rppdString+")"
         if drawingParam.isDrawOutputDiskPin:
             outputDiskSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
             outputDiskSketch.name = "Output disk"
