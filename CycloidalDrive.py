@@ -243,6 +243,32 @@ class CycloidalReducer():
         minAngle = self.fa(minP)
         return minAngle if minAngle<=math.pi/2.0 else math.pi-minAngle
 
+    def fcr(self, p):
+        dxp, dyp  = self.dfxp(p), self.dfyp(p)
+        ddxp, ddyp = self.ddfxp(p), self.ddfyp(p)
+        numerator = (dxp**2 + dyp**2)**1.5
+        denominator = dxp*ddyp - dyp*ddxp
+        return numerator / denominator
+
+    def dfcr(self, p):
+        dxp, dyp  = self.dfxp(p), self.dfyp(p)
+        ddxp, ddyp = self.ddfxp(p), self.ddfyp(p)
+        dddxa, dddya = self.dddfxa(p), self.dddfya(p)
+
+        numerator1 = 3*(dxp**2 + dyp**2)**0.5 * (dxa*ddxa+dya*ddya)*(dxa*ddya-dya*ddxa)
+        numerator2 = (dxp**2 + dyp**2)**1.5 * (dxa*dddya - dya*dddxa)
+        denominator = (dxp*ddyp - dyp*ddxp)**2
+        return (numerator1-numerator2) / denominator
+
+    ## 曲率半径の極値のリストを取得
+    def getExtremumCurvatureRadius(self):
+        (rc, rm, rd) = (self.rc, self.rm, self.rd)
+        inacos = (2*rc*rd**2 - rc*rm**2 + rd**2*rm + rm**3)/(rd*rm*(rc+2*rm))
+        if abs(inacos) <= 1:
+            return (0, math.pi*rm/rc, rm/rc*math.acos(inacos), -rm/rc*math.acos(inacos) )
+        else:
+            return (0, math.pi*rm/rc)
+
     ## 一定の範囲の周長の取得
     # @param upper 範囲の上限[rad]
     # @param lower 範囲の下限[rad]
