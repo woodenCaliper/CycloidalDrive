@@ -78,7 +78,7 @@ def bisectionMethod(func, upper, lower, maxError, maxCalcTimes=100):
         if (upper-lower<=maxError):
             return x
         elif (calcTimes==maxCalcTimes):
-            # ui.messageBox("error")
+            # _ui.messageBox("error")
             return x
 
 ##
@@ -100,7 +100,7 @@ def numericalAnalysis(func, initialValue, maxError, maxCalcTimes=100):
         if abs(xn-x)<=maxError:
             return xn
         elif calcTimes==maxCalcTimes:
-            # ui.messageBox("error")
+            # _ui.messageBox("error")
             return xn
         x = xn
 
@@ -341,14 +341,11 @@ class CycloidalReducer():
             points.append([x,y])
         return (points, self.ringPinRadius)
 
-
 class DrawCycloReducer():
     def __init__(self, inputs):
         drawingParam = inputsToParameter(inputs)
 
-        app = adsk.core.Application.get()
-        design = app.activeProduct
-        unitsMgr = app.activeProduct.unitsManager
+        design = _app.activeProduct
 
         #アクティブなコンポーネント
         activeComp = design.activeOccurrence.component if design.activeOccurrence else  design.rootComponent
@@ -364,12 +361,12 @@ class DrawCycloReducer():
         #sketch
         #ユーザー定義の単位に変換と表示のための丸め
         rr   = int(drawingParam.ringPinNum-1)
-        ea   = unitsMgr.convert(drawingParam.eccentricAmount, unitsMgr.internalUnits, unitsMgr.defaultLengthUnits)
-        rpd  = unitsMgr.convert(drawingParam.ringPinDia,      unitsMgr.internalUnits, unitsMgr.defaultLengthUnits)
-        rppd = unitsMgr.convert(drawingParam.ringPinPitchDia, unitsMgr.internalUnits, unitsMgr.defaultLengthUnits)
-        eaString   = "{:.3g}".format(ea)   + unitsMgr.defaultLengthUnits
-        rpdString  = "{:.3g}".format(rpd)  + unitsMgr.defaultLengthUnits
-        rppdString = "{:.3g}".format(rppd) + unitsMgr.defaultLengthUnits
+        ea   = _unitsMgr.convert(drawingParam.eccentricAmount, _unitsMgr.internalUnits, _unitsMgr.defaultLengthUnits)
+        rpd  = _unitsMgr.convert(drawingParam.ringPinDia,      _unitsMgr.internalUnits, _unitsMgr.defaultLengthUnits)
+        rppd = _unitsMgr.convert(drawingParam.ringPinPitchDia, _unitsMgr.internalUnits, _unitsMgr.defaultLengthUnits)
+        eaString   = "{:.3g}".format(ea)   + _unitsMgr.defaultLengthUnits
+        rpdString  = "{:.3g}".format(rpd)  + _unitsMgr.defaultLengthUnits
+        rppdString = "{:.3g}".format(rppd) + _unitsMgr.defaultLengthUnits
         trochoidSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
         trochoidSketch.name = "Trochoidal gear"+"(rr:"+str(rr)+" ea:"+eaString+")"
         ringPinSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
@@ -563,8 +560,6 @@ class DrawCycloReducer():
                                                (line1.geometry.startPoint.z+line1.geometry.endPoint.z+line2.geometry.startPoint.z+line2.geometry.endPoint.z)/3/2)
         return sketch.sketchDimensions.addAngularDimension(line1, line2, textPoint3D)
 
-
-
 def inputsToParameter(commandInputs):
     drawingParam = namedtuple("DrawingParam",
                             ("ringPinNum", "ringPinDia", "ringPinPitchDia",
@@ -575,10 +570,9 @@ def inputsToParameter(commandInputs):
                                 "isDrawTrochoidalGear", "isDrawRingPin","isDrawCentorHole", "isDrawAroundHole","isDrawOutputDiskPin"
                                 ))
 
-    unitsMgr = app.activeProduct.unitsManager
 
     drawingParam.isDrawTrochoidalGear = True
-    drawingParam.isDrawRingPin      = True
+    drawingParam.isDrawRingPin       = True
     drawingParam.isDrawCentorHole    = commandInputs.itemById(ID_OPT_CGH_DR).value
     drawingParam.isDrawAroundHole    = commandInputs.itemById(ID_OPT_DR_CAH).value
     drawingParam.isDrawOutputDiskPin = commandInputs.itemById(ID_OPT_DR_DP).value
@@ -591,14 +585,14 @@ def inputsToParameter(commandInputs):
     plotNumInput           = commandInputs.itemById(ID_NES_CGPN)
       #itemから値を取得
     drawingParam.ringPinNum    = int(reducationRatioInput.value)+1
-    drawingParam.ringPinDia    = unitsMgr.evaluateExpression(ringPinDiaInput.expression)
-    drawingParam.ringPinPitchDia = unitsMgr.evaluateExpression(ringPinPitchDiaInput.expression)
-    drawingParam.eccentricAmount   = unitsMgr.evaluateExpression(eccentricAmountInput.expression)
+    drawingParam.ringPinDia    = _unitsMgr.evaluateExpression(ringPinDiaInput.expression)
+    drawingParam.ringPinPitchDia = _unitsMgr.evaluateExpression(ringPinPitchDiaInput.expression)
+    drawingParam.eccentricAmount   = _unitsMgr.evaluateExpression(eccentricAmountInput.expression)
     drawingParam.plotDotNum        = int(plotNumInput.value)
 
     if drawingParam.isDrawCentorHole:
         troGearCentorHoleDiaInput    = commandInputs.itemById(ID_OPT_CGH_D)
-        drawingParam.troGearCentorHoleDia = unitsMgr.evaluateExpression(troGearCentorHoleDiaInput.expression)
+        drawingParam.troGearCentorHoleDia = _unitsMgr.evaluateExpression(troGearCentorHoleDiaInput.expression)
 
     if drawingParam.isDrawAroundHole:
         troGearAroundHoleNumInput    = commandInputs.itemById(ID_OPT_CHOTGOD_AN)
@@ -606,8 +600,8 @@ def inputsToParameter(commandInputs):
         troGearAroundHolePosDiaInput = commandInputs.itemById(ID_OPT_CHOTGOD_APD)
           #option trochoidal gear
         drawingParam.troGearAroundHoleNum    = int(troGearAroundHoleNumInput.value)
-        drawingParam.troGearAroundHoleDia    = unitsMgr.evaluateExpression(troGearAroundHoleDiaInput.expression)
-        drawingParam.troGearAroundHolePosDia = unitsMgr.evaluateExpression(troGearAroundHolePosDiaInput.expression)
+        drawingParam.troGearAroundHoleDia    = _unitsMgr.evaluateExpression(troGearAroundHoleDiaInput.expression)
+        drawingParam.troGearAroundHolePosDia = _unitsMgr.evaluateExpression(troGearAroundHolePosDiaInput.expression)
 
     if drawingParam.isDrawOutputDiskPin:
         outDiskPinNumInput    = commandInputs.itemById(ID_OPT_CHOTGOD_ON)
@@ -615,8 +609,8 @@ def inputsToParameter(commandInputs):
         outDiskPinPosDiaInput = commandInputs.itemById(ID_OPT_CHOTGOD_OPD)
             #option outputDisk
         drawingParam.outDiskPinNum    = int(outDiskPinNumInput.value)
-        drawingParam.outDiskPinDia    = unitsMgr.evaluateExpression(outDiskPinDiaInput.expression)
-        drawingParam.outDiskPinPosDia = unitsMgr.evaluateExpression(outDiskPinPosDiaInput.expression)
+        drawingParam.outDiskPinDia    = _unitsMgr.evaluateExpression(outDiskPinDiaInput.expression)
+        drawingParam.outDiskPinPosDia = _unitsMgr.evaluateExpression(outDiskPinPosDiaInput.expression)
     return drawingParam
 
 def settingComandInputsItem(inputs):
@@ -679,9 +673,6 @@ class MyCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
         super().__init__()
     def notify(self, args):
         try:
-            app = adsk.core.Application.get()
-            ui = app.userInterface
-
             cmd = args.command
 
             cmd.setDialogInitialSize(300,500)
@@ -711,8 +702,8 @@ class MyCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             settingComandInputsItem(inputs)
 
         except:    #定型エラー処理文
-            if ui:
-                ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
+            if _ui:
+                _ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
 
 # 入力ダイアログで入力された値が、妥当であるか検証するクラス
 class MyCommandValidateInputsHandler(adsk.core.ValidateInputsEventHandler):
@@ -721,9 +712,7 @@ class MyCommandValidateInputsHandler(adsk.core.ValidateInputsEventHandler):
     def notify(self, args):
         try:
             args.areInputsValid = True
-            app = adsk.core.Application.get()
             cmd = args.firingEvent.sender
-            unitsMgr = app.activeProduct.unitsManager
             inputs = cmd.commandInputs
             param  = inputsToParameter(inputs)
 
@@ -771,7 +760,7 @@ class MyCommandValidateInputsHandler(adsk.core.ValidateInputsEventHandler):
             outputInputList = [outputNumInput, outputDiameterInput, outputPosDiameterInput]
 
             eccentricAmountInput = inputs.itemById(ID_NES_EA)
-            eccentricAmountCm = unitsMgr.evaluateExpression(eccentricAmountInput.expression)
+            eccentricAmountCm = _unitsMgr.evaluateExpression(eccentricAmountInput.expression)
 
             if (drawAroundHoleInput.value is False) and (drawOutputPinInput.value is False):
                 trochoidOrOutputInput.isEnabled = False
@@ -782,15 +771,15 @@ class MyCommandValidateInputsHandler(adsk.core.ValidateInputsEventHandler):
                 for i in aroundInputList + outputInputList:
                     i.isEnabled = True
 
-            aroundDiaCm  = unitsMgr.evaluateExpression(AroundHoleDiameterInput.expression)
-            outputDiaCm  = unitsMgr.evaluateExpression(outputDiameterInput.expression)
+            aroundDiaCm  = _unitsMgr.evaluateExpression(AroundHoleDiameterInput.expression)
+            outputDiaCm  = _unitsMgr.evaluateExpression(outputDiameterInput.expression)
             if trochoidOrOutputInput.selectedItem.index == 0:    #trochoidal gear around hole
                 for i in aroundInputList:
                     i.isVisible = True
                 for i in outputInputList:
                     i.isVisible = False
                 outputNumInput.value              = AroundHoleNumInput.value
-                outputDiameterInput.expression    = unitsMgr.formatInternalValue(aroundDiaCm - 2*eccentricAmountCm)
+                outputDiameterInput.expression    = _unitsMgr.formatInternalValue(aroundDiaCm - 2*eccentricAmountCm)
                 outputPosDiameterInput.expression = AroundHolePosDiameterInput.expression
 
 
@@ -800,20 +789,20 @@ class MyCommandValidateInputsHandler(adsk.core.ValidateInputsEventHandler):
                 for i in outputInputList:
                     i.isVisible = True
                 AroundHoleNumInput.value              = outputNumInput.value
-                AroundHoleDiameterInput.expression    = unitsMgr.formatInternalValue(outputDiaCm + 2*eccentricAmountCm)
+                AroundHoleDiameterInput.expression    = _unitsMgr.formatInternalValue(outputDiaCm + 2*eccentricAmountCm)
                 AroundHolePosDiameterInput.expression = outputPosDiameterInput.expression
 
             if isDrawAroundHole:
-                if (AroundHoleNumInput.value <= 0) or (aroundDiaCm <= 0) or (unitsMgr.evaluateExpression(AroundHolePosDiameterInput.expression) <= 0):
+                if (AroundHoleNumInput.value <= 0) or (aroundDiaCm <= 0) or (_unitsMgr.evaluateExpression(AroundHolePosDiameterInput.expression) <= 0):
                     args.areInputsValid = False
             if isDrawOutputDisk:
-                if (outputNumInput.value <= 0) or (outputDiaCm <= 0) or (unitsMgr.evaluateExpression(outputPosDiameterInput.expression) <= 0):
+                if (outputNumInput.value <= 0) or (outputDiaCm <= 0) or (_unitsMgr.evaluateExpression(outputPosDiameterInput.expression) <= 0):
                     args.areInputsValid = False
 
 
         except:    #定型エラー処理文
-            if ui:
-                ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
+            if _ui:
+                _ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
 
 # Event handler for the executePreview event.
 class MyExecutePreviewHandler(adsk.core.CommandEventHandler):
@@ -836,8 +825,8 @@ class MyExecutePreviewHandler(adsk.core.CommandEventHandler):
                 testView.value = False
                 DrawCycloReducer(inputs)
         except:    #定型エラー処理文
-            if ui:
-                ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
+            if _ui:
+                _ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
 
 # 入力ダイアログで入力された値を取り出すクラス
 # 入力ダイアログ・クラスにonValidateInputsイベントを設定して使用する
@@ -846,16 +835,16 @@ class MyCommandExecuteHandler(adsk.core.CommandEventHandler):
         super().__init__()
     def notify(self, args):
         try:
-            app = adsk.core.Application.get()
-            design = app.activeProduct
+            design = _app.activeProduct
 
             command = args.firingEvent.sender
             inputs = command.commandInputs
             DrawCycloReducer(inputs)
 
+
         except:    #定型エラー処理文
-            if ui:
-                ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
+            if _ui:
+                _ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
 
 # 終了処理
 class MyCommandDestroyHandler(adsk.core.CommandEventHandler):
@@ -867,28 +856,25 @@ class MyCommandDestroyHandler(adsk.core.CommandEventHandler):
             # これは、すべてのイベントハンドラを削除する、すべてのグローバルを解放します
             adsk.terminate()
         except:    #定型エラー処理文
-            if ui:
-                ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
+            if _ui:
+                _ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
 
 def run(context):
-    ui = None
+    _ui = None
     try:
         # アプリケーションを取得
         print("addIn start")
-        global app
-        app = adsk.core.Application.get()
+        global _app, _ui, _unitsMgr
+        _app = adsk.core.Application.get()
+        _ui = _app.userInterface
 
-        # ユーザーインターフェースを取得
-        global ui
-        ui = app.userInterface
-
-        unitsMgr = app.activeProduct.unitsManager
+        _unitsMgr = _app.activeProduct.unitsManager
 
         # ＊＊＊入力ダイアログの処理＊＊＊
         # コマンド定義を作成します。
-        cmdDef = ui.commandDefinitions.itemById(COMMAND_ID)
+        cmdDef = _ui.commandDefinitions.itemById(COMMAND_ID)
         if not cmdDef:
-            cmdDef = ui.commandDefinitions.addButtonDefinition(COMMAND_ID, COMMAND_NAME, COMMAND_DESCRIPTION)
+            cmdDef = _ui.commandDefinitions.addButtonDefinition(COMMAND_ID, COMMAND_NAME, COMMAND_DESCRIPTION)
 
         # 作成されたイベントのコマンドを追加します
 
@@ -905,5 +891,5 @@ def run(context):
         adsk.autoTerminate(False)
 
     except:    #定型エラー処理文
-        if ui:
-            ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
+        if _ui:
+            _ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
