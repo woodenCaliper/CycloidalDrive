@@ -114,9 +114,14 @@ class CycloidalReducer():
     # @param ringPinPitchRadius 外ピンの配置半径
     # @param eccentricAmount 偏心量
     def __init__(self, ringPinNum, ringPinRadius, ringPinPitchRadius, eccentricAmount):
+        if(ringPinNum<2) or (ringPinRadius<=0) \
+            or (ringPinPitchRadius<=0) or (eccentricAmount<=0):
+            raise ValueError("invalid argument")
+
         self.ringPinNum              = ringPinNum           #外ピン数
         self.ringPinRadius           = ringPinRadius        #外歯半径
         self.ringPinPitchRadius      = ringPinPitchRadius   #外ピン配置半径
+
         self.trochoidalGearThoothNum = ringPinNum-1         #内歯数
         self.eccentricAmount         = eccentricAmount      #偏心量
         self.reducationRatio = self.trochoidalGearThoothNum / (self.ringPinNum - self.trochoidalGearThoothNum)#減速比
@@ -125,6 +130,16 @@ class CycloidalReducer():
         self.rc = self.rm*self.reducationRatio                      #動円半径
         self.rd = self.eccentricAmount                              #動円の描画半径
         self.d  = self.ringPinRadius                                #オフセット量
+
+    #曲線が特異点を有しているかチェック
+    def hasSingularPoint(self):
+        #エピトロコイド曲線の特異点チェック
+        if(self.eccentricAmount*self.ringPinNum >= self.ringPinPitchRadius):
+            return True
+        #エピトロコイド平行曲線の特異点チェック
+        if self.getMaxOffset() < self.ringPinRadius:
+            return True
+        return False
 
     ## x of trochoid curve
     # \f$f_{x_a}(p)\f$
@@ -242,6 +257,25 @@ class CycloidalReducer():
         minP = bisectionMethod(self.dfa, lastPOneThooth/2, 0, maxError)
         minAngle = self.fa(minP)
         return minAngle if minAngle<=math.pi/2.0 else math.pi-minAngle
+
+    #トロコイド曲線の曲率半径
+    def fcr(self, p):
+        dxa, dya  = self.dfxa(p), self.dfya(p)
+        ddxa, ddya = self.ddfxa(p), self.ddfya(p)
+        numerator = (dxa**2 + dya**2)**1.5
+        denominator = dxa*ddya - dya*ddxa
+        return numerator / denominator
+
+    ## 最大のオフセット量を取得
+    # 曲率半径の極値から計算
+    def getMaxOffset(self):
+        (rc, rm, rd) = (self.rc, self.rm, self.rd)
+        inacos = (2*rc*rd**2 - rc*rm**2 + rd**2*rm + rm**3)/(rd*rm*(rc+2*rm))
+        if abs(inacos) <= 1:
+            s = [self.fcr(rm/rc*math.pi), self.fcr(rm/rc*math.acos(inacos))]
+            return min(s)
+        else:
+            return self.fcr(rm/rc*math.pi)
 
     ## 一定の範囲の周長の取得
     # @param upper 範囲の上限[rad]
@@ -693,6 +727,13 @@ class MyCommandValidateInputsHandler(adsk.core.ValidateInputsEventHandler):
             inputs = cmd.commandInputs
             param  = inputsToParameter(inputs)
 
+            try:
+                cr = CycloidalReducer(param.ringPinNum, param.ringPinDia/2.0, param.ringPinPitchDia/2.0, param.eccentricAmount)
+                if cr.hasSingularPoint():
+                    args.areInputsValid = False
+            except ValueError as e:
+                print(str(e))
+                args.areInputsValid = False
             if (param.eccentricAmount <=0) or (param.ringPinPitchDia <=0) \
                     or (param.ringPinDia <=0) or (param.ringPinNum<2) \
                     or (param.eccentricAmount*param.ringPinNum >= (param.ringPinPitchDia/2.0)):
