@@ -1,6 +1,7 @@
 import adsk.core, adsk.fusion, traceback
 import math, time
 from collections import namedtuple
+import pickle
 
 COMMAND_ID = "trochoid_decelerator"
 #COMMAND_ID name
@@ -40,7 +41,12 @@ ID_OPT_CHOTGOD_ON  = ID_OPT_TGTOD_GROUP + "output_disk_num"
 ID_OPT_CHOTGOD_OD  = ID_OPT_TGTOD_GROUP + "output_disk_diameter"
 ID_OPT_CHOTGOD_OPD = ID_OPT_TGTOD_GROUP + "output_disk_position_diameter"
 
-
+USER_CHANGEABLE_ID = [  ID_NES_RR, ID_NES_EA, ID_NES_RGPD, ID_NES_RGPPD, ID_NES_CGPN, #nessary param
+                        ID_OPT_CGH_DR, ID_OPT_CGH_D, #center hole
+                        # ID_OPT_CHOTGOD,
+                        ID_OPT_DR_CAH, ID_OPT_CHOTGOD_AN, ID_OPT_CHOTGOD_AD, ID_OPT_CHOTGOD_APD, #around hole
+                        ID_OPT_DR_DP, ID_OPT_CHOTGOD_ON, ID_OPT_CHOTGOD_OD, ID_OPT_CHOTGOD_OPD   #disk pin
+                     ]
 
 # コマンドの識別データの設定
 COMMAND_NAME = 'create cyclo reducer'
@@ -700,10 +706,42 @@ class MyCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             # 入力ダイアログの値は、commandInputsコレクションのinputsの中に入ります。
             inputs = cmd.commandInputs
             settingComandInputsItem(inputs)
+            loadInputsValue(inputs, USER_CHANGEABLE_ID)
 
         except:    #定型エラー処理文
             if _ui:
                 _ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
+
+# @brief commandInputsのitemのvalueをデザインのattributesに保存する
+# @param commandInputs[CommandInputs Object] 保存したい状態のcommandInputs
+# @param ids[list of str] 保存したいInputsのIDのリスト
+# @param groupName[str] attributesに保存するときのグループ名
+def saveInputsValues(commandInputs, ids, groupName="lastCommandInputValue"):
+    design = _app.activeProduct
+    attribs = design.attributes
+    for id in ids:
+        value = commandInputs.itemById(id).value
+        binaryValue = pickle.dumps(value)   #pickleでオブジェクトをバイナリ化
+        strValue = binaryValue.hex()        #保存形式に対応させるため、hex化し文字列にする
+        attribs.add(groupName, id, strValue)
+
+# @brief attributesに保存したものをcommandInputsに上書きする
+# @param commandInputs[CommandInputs Object] 上書きしたい状態のcommandInputs
+# @param ids[list of str] 上書きしたいInputsのIDのリスト
+# @param groupName[str] attributesに保存したグループ名
+# @return [bool] 成否
+def loadInputsValue(commandInputs, ids, groupName="lastCommandInputValue"):
+    design = _app.activeProduct
+    attribs = design.attributes
+    if groupName not in attribs.groupNames:
+        return False
+    for id in ids:
+        strValue = attribs.itemByName(groupName, id).value
+        binaryValue = bytes.fromhex(strValue)
+        value = pickle.loads(binaryValue)
+        commandInputs.itemById(id).value = value
+    return True
+
 
 # 入力ダイアログで入力された値が、妥当であるか検証するクラス
 class MyCommandValidateInputsHandler(adsk.core.ValidateInputsEventHandler):
@@ -841,6 +879,7 @@ class MyCommandExecuteHandler(adsk.core.CommandEventHandler):
             inputs = command.commandInputs
             DrawCycloReducer(inputs)
 
+            saveInputsValues(inputs, USER_CHANGEABLE_ID)
 
         except:    #定型エラー処理文
             if _ui:
