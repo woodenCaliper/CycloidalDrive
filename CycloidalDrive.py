@@ -374,12 +374,12 @@ class DrawCycloReducer():
         rpdString  = "{:.3g}".format(rpd)  + _unitsMgr.defaultLengthUnits
         rppdString = "{:.3g}".format(rppd) + _unitsMgr.defaultLengthUnits
         trochoidSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
-        trochoidSketch.name = "Trochoidal gear"+"(rr:"+str(rr)+" ea:"+eaString+")"
+        trochoidSketch.name = "Cycloidal gear"+"(rr:"+str(rr)+" ea:"+eaString+")"
         ringPinSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
         ringPinSketch.name = "Ring pins"+"(rpd:"+rpdString+" rppd:"+rppdString+")"
         if drawingParam.isDrawOutputDiskPin:
             outputDiskSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
-            outputDiskSketch.name = "Output disk"
+            outputDiskSketch.name = "Output disk pin"
 
         #スケッチの中身を作成
         self.createTrochoidalGear(trochoidSketch, drawingParam)
