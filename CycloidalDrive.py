@@ -377,9 +377,14 @@ class DrawCycloReducer():
         trochoidSketch.name = "Cycloidal gear"+"(rr:"+str(rr)+" ea:"+eaString+")"
         ringPinSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
         ringPinSketch.name = "Ring pins"+"(rpd:"+rpdString+" rppd:"+rppdString+")"
+        skts = [trochoidSketch, ringPinSketch]
         if drawingParam.isDrawOutputDiskPin:
             outputDiskSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
             outputDiskSketch.name = "Output disk pin"
+            skts.append(outputDiskSketch)
+
+        for skt in skts:
+            skt.isComputeDeferred = True    #処理高速化のためにスケッチ計算を一旦OFF
 
         #スケッチの中身を作成
         self.createTrochoidalGear(trochoidSketch, drawingParam)
@@ -390,6 +395,9 @@ class DrawCycloReducer():
             self.createTrochoidalGearAroundHole(trochoidSketch, drawingParam)
         if drawingParam.isDrawOutputDiskPin:
             self.createOutputDisk(outputDiskSketch, drawingParam)
+
+        for skt in skts:
+            skt.isComputeDeferred = False
 
     def createTrochoidalGear(self, sketch, drawingParam):
         sketchOriginPoint = sketch.originPoint
