@@ -364,20 +364,24 @@ class DrawCycloReducer():
         self.cycoroidDecelerator = CycloidalReducer(int(drawingParam.ringPinNum), drawingParam.ringPinDia/2.0,
                                                     drawingParam.ringPinPitchDia/2.0,  drawingParam.eccentricAmount)
 
-        #sketch
-        #ユーザー定義の単位に変換と表示のための丸め
+        #sketchオフジェクト(必須2スケッチ)の作成
+
+        trochoidSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
+        ringPinSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
+        skts = [trochoidSketch, ringPinSketch]
+
+        #スケッチ名にパラメータ値を表記
         rr   = int(drawingParam.ringPinNum-1)
-        ea   = _unitsMgr.convert(drawingParam.eccentricAmount, _unitsMgr.internalUnits, _unitsMgr.defaultLengthUnits)
+        ea   = _unitsMgr.convert(drawingParam.eccentricAmount, _unitsMgr.internalUnits, _unitsMgr.defaultLengthUnits)   #単位変換
         rpd  = _unitsMgr.convert(drawingParam.ringPinDia,      _unitsMgr.internalUnits, _unitsMgr.defaultLengthUnits)
         rppd = _unitsMgr.convert(drawingParam.ringPinPitchDia, _unitsMgr.internalUnits, _unitsMgr.defaultLengthUnits)
-        eaString   = "{:.3g}".format(ea)   + _unitsMgr.defaultLengthUnits
+        eaString   = "{:.3g}".format(ea)   + _unitsMgr.defaultLengthUnits   #表示のための丸め+単位
         rpdString  = "{:.3g}".format(rpd)  + _unitsMgr.defaultLengthUnits
         rppdString = "{:.3g}".format(rppd) + _unitsMgr.defaultLengthUnits
-        trochoidSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
-        trochoidSketch.name = "Cycloidal gear"+"(rr:"+str(rr)+" ea:"+eaString+")"
-        ringPinSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
+        trochoidSketch.name = "Cycloidal gear"+"(rr:"+str(rr)+" ea:"+eaString+")"   #スケッチ名編集
         ringPinSketch.name = "Ring pins"+"(rpd:"+rpdString+" rppd:"+rppdString+")"
-        skts = [trochoidSketch, ringPinSketch]
+
+        #outputDiskPinのスケッチオブジェクト作成
         if drawingParam.isDrawOutputDiskPin:
             outputDiskSketch = compReducer.sketches.add(compReducer.xYConstructionPlane)
             outputDiskSketch.name = "Output disk pin"
@@ -397,7 +401,7 @@ class DrawCycloReducer():
             self.createOutputDisk(outputDiskSketch, drawingParam)
 
         for skt in skts:
-            skt.isComputeDeferred = False
+            skt.isComputeDeferred = False   #スケッチ計算を一旦OFFを戻す
 
     def createTrochoidalGear(self, sketch, drawingParam):
         sketchOriginPoint = sketch.originPoint
