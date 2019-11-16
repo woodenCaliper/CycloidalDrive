@@ -911,11 +911,11 @@ class MyCommandDestroyHandler(adsk.core.CommandEventHandler):
                 _ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
 
 def run(context):
+    global _app, _ui, _unitsMgr
     _ui = None
     try:
         # アプリケーションを取得
         print("addIn start")
-        global _app, _ui, _unitsMgr
         _app = adsk.core.Application.get()
         _ui = _app.userInterface
 
