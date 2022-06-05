@@ -1,4 +1,7 @@
 # Fusion360 script for creating Cycloidal Drive sketch
+
+简体中文版本，下文待翻译
+
 This can create part of cycloidal drive
 * Cycloida gear (gray)
     * Trochoidal parallel curve
